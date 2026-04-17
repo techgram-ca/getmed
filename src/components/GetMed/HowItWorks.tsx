@@ -60,9 +60,7 @@ export default function HowItWorks() {
                 </span>
                 <div className="flex-1 h-px bg-[#e2efed]" />
               </div>
-              <div className="text-[1.15rem] font-bold text-[#0d1f1c] mb-2">
-                {step.title}
-              </div>
+              <div className="text-[1.15rem] font-bold text-[#0d1f1c] mb-2">{step.title}</div>
               <p className="text-sm text-[#6b8280] leading-[1.7]">{step.desc}</p>
             </div>
           ))}
