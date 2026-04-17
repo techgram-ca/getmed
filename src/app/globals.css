@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #2a9d8f;
+  --primary-dark: #21867a;
+  --primary-light: #e0f5f2;
+  --primary-faint: #f0fbf9;
+  --text: #0d1f1c;
+  --text-muted: #6b8280;
+  --bg: #f8fffe;
+  --card: #ffffff;
+  --border: #e2efed;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.pulse-dot {
+  animation: pulse-dot 1.8s infinite;
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  opacity: 0;
+  animation: fade-in-up 0.6s ease forwards;
+}
+
+.delay-1 { animation-delay: 0.12s; }
+.delay-2 { animation-delay: 0.24s; }
