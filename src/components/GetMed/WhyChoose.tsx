@@ -1,4 +1,4 @@
-import { Home, Zap, ShieldCheck } from "lucide-react";
+import { Home, ShieldCheck, Zap } from "lucide-react";
 
 const benefits = [
   {
@@ -49,12 +49,8 @@ export default function WhyChoose() {
                     <Icon className="w-7 h-7 text-white" />
                   </div>
                 </div>
-                <div className="text-[1.15rem] font-bold text-[#0d1f1c] mb-2.5">
-                  {b.title}
-                </div>
-                <p className="text-sm text-[#6b8280] leading-[1.7] max-w-[280px]">
-                  {b.desc}
-                </p>
+                <div className="text-[1.15rem] font-bold text-[#0d1f1c] mb-2.5">{b.title}</div>
+                <p className="text-sm text-[#6b8280] leading-[1.7] max-w-[280px]">{b.desc}</p>
               </div>
             );
           })}

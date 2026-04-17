@@ -11,7 +11,6 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#f8fffe]/88 backdrop-blur-[16px] border-b border-[#e2efed]">
       <div className="max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 no-underline">
           <div className="w-9 h-9 rounded-[10px] bg-[#2a9d8f] flex items-center justify-center">
             <HeartPulse className="w-5 h-5 text-white" />
@@ -21,7 +20,6 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop links */}
         <ul className="hidden md:flex items-center gap-8 list-none">
           <li>
             <a
@@ -46,7 +44,6 @@ export default function Navbar() {
           </li>
         </ul>
 
-        {/* Mobile menu button */}
         <button
           className="md:hidden p-2 text-[#0d1f1c] bg-transparent border-none cursor-pointer"
           onClick={() => setOpen(!open)}
@@ -56,7 +53,6 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile menu */}
       {open && (
         <div className="md:hidden border-t border-[#e2efed] bg-[#f8fffe] px-6 py-4 flex flex-col gap-4">
           <a

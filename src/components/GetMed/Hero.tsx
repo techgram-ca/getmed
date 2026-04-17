@@ -1,23 +1,24 @@
 "use client";
 
-import { useRef } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { MapPin, Search } from "lucide-react";
+import { Search } from "lucide-react";
+import AddressAutocomplete from "./AddressAutocomplete";
 
 const HERO_IMG =
   "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69b36369a43cace0e1e7f072/f87c6e70c_generated_1ccccf43.png";
 
 export default function Hero() {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [address, setAddress] = useState("");
 
   function handleSearch() {
-    const val = inputRef.current?.value.trim();
-    if (!val) {
-      inputRef.current?.focus();
+    const trimmed = address.trim();
+    if (!trimmed) {
+      document.getElementById("hero-address-input")?.focus();
       return;
     }
-    alert("Searching for pharmacies near: " + val);
+    // TODO: navigate to pharmacy listing page
+    alert("Searching for pharmacies near: " + trimmed);
   }
 
   return (
@@ -25,16 +26,13 @@ export default function Hero() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         {/* Left column */}
         <div>
-          {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#e0f5f2] text-[#2a9d8f] text-xs font-semibold mb-5">
             <span className="w-2 h-2 rounded-full bg-[#2a9d8f] pulse-dot" />
             Trusted by 10,000+ users
           </div>
 
           <h1 className="text-[clamp(2.2rem,5vw,3.6rem)] font-extrabold leading-[1.15] tracking-tight">
-            Get Your{" "}
-            <span className="text-[#2a9d8f]">Medicines</span>{" "}
-            Delivered
+            Get Your <span className="text-[#2a9d8f]">Medicines</span> Delivered
           </h1>
 
           <p className="mt-4 text-[1.1rem] text-[#6b8280] max-w-[500px] leading-[1.7]">
@@ -42,26 +40,18 @@ export default function Hero() {
             them delivered straight to your door — safe, fast, and hassle-free.
           </p>
 
-          {/* Search row */}
           <div className="mt-8 flex flex-wrap gap-3">
-            <div className="relative flex-1 min-w-[220px]">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b8280] pointer-events-none" />
-              <Input
-                ref={inputRef}
-                type="text"
-                placeholder="Enter your delivery address..."
-                autoComplete="street-address"
-                className="pl-11"
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
-            </div>
+            <AddressAutocomplete
+              inputId="hero-address-input"
+              onAddressChange={setAddress}
+              onEnter={handleSearch}
+            />
             <Button size="search" onClick={handleSearch} className="flex items-center gap-2">
               <Search className="w-4 h-4" />
               Find Pharmacies
             </Button>
           </div>
 
-          {/* Social proof */}
           <div className="mt-5 flex items-center gap-3 text-xs text-[#6b8280]">
             <div className="flex">
               {["A", "B", "C", "D"].map((l, i) => (

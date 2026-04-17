@@ -4,8 +4,7 @@ export default function CtaStrip() {
   function scrollToSearch() {
     window.scrollTo({ top: 0, behavior: "smooth" });
     setTimeout(() => {
-      const input = document.querySelector<HTMLInputElement>('input[autocomplete="street-address"]');
-      input?.focus();
+      document.getElementById("hero-address-input")?.focus();
     }, 600);
   }
 
