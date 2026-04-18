@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { HeartPulse, ArrowRight, CheckCircle2 } from "lucide-react";
+import { AlertCircle, ArrowRight, CheckCircle2, HeartPulse, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { pharmacySignupAction } from "@/app/pharmacy/signup/actions";
 
 import BasicInfo, {
   type BasicInfoValue,
@@ -33,14 +34,82 @@ const INITIAL: FormState = {
 };
 
 export default function SignupForm() {
-  const [form, setForm] = useState<FormState>(INITIAL);
+  const [form, setForm]       = useState<FormState>(INITIAL);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    console.log("Pharmacy signup:", form);
-    setSubmitted(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setLoading(true);
+    setError(null);
+
+    try {
+      const fd = new FormData();
+
+      // ── Auth fields ────────────────────────────────────────────
+      fd.append("email",       form.basic.email);
+      fd.append("password",    form.basic.password);
+      fd.append("contactName", form.basic.contactName);
+      fd.append("phone",       form.basic.phone);
+
+      // ── Pharmacy details (no files) ────────────────────────────
+      fd.append(
+        "pharmacy",
+        JSON.stringify({
+          legalName:     form.pharmacy.legalName,
+          displayName:   form.pharmacy.displayName,
+          address:       form.pharmacy.address,
+          licenseNumber: form.pharmacy.licenseNumber,
+          openingHours:  form.pharmacy.openingHours,
+          paymentMethods: form.pharmacy.paymentMethods,
+        })
+      );
+
+      // ── Services ───────────────────────────────────────────────
+      fd.append("services", JSON.stringify(form.services));
+
+      // ── Files ─────────────────────────────────────────────────
+      if (form.pharmacy.licenseFile) {
+        fd.append("licenseFile", form.pharmacy.licenseFile);
+      }
+
+      // ── Pharmacist (only when consultation is selected) ────────
+      if (form.services.consultation) {
+        fd.append(
+          "pharmacist",
+          JSON.stringify({
+            fullName:           form.pharmacist.fullName,
+            qualification:      form.pharmacist.qualification,
+            licenseNumber:      form.pharmacist.licenseNumber,
+            yearsOfExperience:  form.pharmacist.yearsOfExperience,
+            specialization:     form.pharmacist.specialization,
+            languages:          form.pharmacist.languages,
+            bio:                form.pharmacist.bio,
+            availabilityHours:  form.pharmacist.availabilityHours,
+            modes:              form.pharmacist.modes,
+            fee:                form.pharmacist.fee,
+          })
+        );
+        if (form.pharmacist.photo) {
+          fd.append("pharmacistPhoto", form.pharmacist.photo);
+        }
+      }
+
+      const result = await pharmacySignupAction(fd);
+
+      if (result.error) {
+        setError(result.error);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        setSubmitted(true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    } catch {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (submitted) {
@@ -130,6 +199,14 @@ export default function SignupForm() {
           />
         )}
 
+        {/* Error banner */}
+        {error && (
+          <div className="flex items-start gap-3 px-5 py-4 rounded-xl bg-red-50 border border-red-200 text-red-700">
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+            <p className="text-sm">{error}</p>
+          </div>
+        )}
+
         {/* Submit */}
         <div className="bg-white rounded-2xl border border-[#e2efed] px-6 py-6 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -142,10 +219,20 @@ export default function SignupForm() {
             <Button
               type="submit"
               size="lg"
+              disabled={loading}
               className="flex items-center gap-2 shrink-0"
             >
-              Submit Application
-              <ArrowRight className="w-4 h-4" />
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Submitting…
+                </>
+              ) : (
+                <>
+                  Submit Application
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </Button>
           </div>
           <p className="mt-4 text-[0.7rem] text-[#6b8280] border-t border-[#e2efed] pt-4">
