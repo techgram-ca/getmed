@@ -72,23 +72,25 @@ export default function Sidebar({ pharmacyName, status }: Props) {
         <p className="text-[0.75rem] font-bold text-[#0d1f1c] truncate">{pharmacyName}</p>
         <span
           className={`inline-flex items-center gap-1 text-[0.6rem] font-bold uppercase tracking-wider mt-0.5 ${
-            status === "active"
+            status === "approved"
               ? "text-emerald-600"
               : status === "suspended"
+              ? "text-red-500"
+              : status === "rejected"
               ? "text-red-500"
               : "text-amber-600"
           }`}
         >
           <span
             className={`w-1.5 h-1.5 rounded-full ${
-              status === "active"
+              status === "approved"
                 ? "bg-emerald-500"
-                : status === "suspended"
+                : status === "suspended" || status === "rejected"
                 ? "bg-red-500"
                 : "bg-amber-500 animate-pulse"
             }`}
           />
-          {status === "active" ? "Active" : status === "suspended" ? "Suspended" : "Pending Approval"}
+          {status === "approved" ? "Active" : status === "suspended" ? "Suspended" : status === "rejected" ? "Rejected" : "Pending Approval"}
         </span>
       </div>
     </div>
