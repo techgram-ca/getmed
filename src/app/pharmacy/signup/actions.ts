@@ -52,7 +52,8 @@ export async function pharmacySignupAction(
     await supabase.auth.admin.createUser({
       email,
       password,
-      user_metadata: { role: "pharmacy", contact_name: contact },
+      app_metadata:  { role: "pharmacy" },
+      user_metadata: { contact_name: contact },
       email_confirm: false, // sends a verification email
     });
 
