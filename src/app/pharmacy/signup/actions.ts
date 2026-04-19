@@ -43,6 +43,7 @@ export async function pharmacySignupAction(
   const services    = JSON.parse(fd.get("services")    as string);
   const pharmacistJson = fd.get("pharmacist") as string | null;
 
+  const logoFile        = fd.get("logoFile")        as File | null;
   const licenseFile     = fd.get("licenseFile")     as File | null;
   const pharmacistPhoto = fd.get("pharmacistPhoto") as File | null;
 
@@ -65,7 +66,27 @@ export async function pharmacySignupAction(
 
   const userId = authData.user.id;
 
-  // ── 2. Upload pharmacy license ────────────────────────────────
+  // ── 2a. Upload pharmacy logo ──────────────────────────────────
+  let logoUrl: string | null = null;
+
+  if (logoFile && logoFile.size > 0) {
+    const ext  = logoFile.name.split(".").pop() ?? "png";
+    const path = `${userId}/logo.${ext}`;
+
+    const { error: logoUploadError } = await supabase.storage
+      .from("pharmacy-logos")
+      .upload(path, await logoFile.arrayBuffer(), {
+        contentType: logoFile.type,
+        upsert: true,
+      });
+
+    if (!logoUploadError) {
+      const { data } = supabase.storage.from("pharmacy-logos").getPublicUrl(path);
+      logoUrl = data.publicUrl;
+    }
+  }
+
+  // ── 2b. Upload pharmacy license ───────────────────────────────
   let licenseStoragePath: string | null = null;
 
   if (licenseFile && licenseFile.size > 0) {
@@ -96,6 +117,7 @@ export async function pharmacySignupAction(
       phone,
       legal_name:           pharmacy.legalName,
       display_name:         pharmacy.displayName,
+      logo_url:             logoUrl,
       full_address:         pharmacy.address.fullAddress,
       unit:                 pharmacy.address.unit      || null,
       city:                 pharmacy.address.city,

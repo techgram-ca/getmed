@@ -4,6 +4,7 @@ import SectionCard from "../SectionCard";
 import PharmacyAddressField, { type AddressValue } from "../PharmacyAddressField";
 import OpeningHours, { DEFAULT_HOURS, type OpeningHoursValue } from "../OpeningHours";
 import FileUpload from "../FileUpload";
+import LogoUpload from "../LogoUpload";
 import CheckboxItem from "../CheckboxItem";
 
 const PAYMENT_OPTIONS = [
@@ -17,6 +18,7 @@ const PAYMENT_OPTIONS = [
 export interface PharmacyDetailsValue {
   legalName: string;
   displayName: string;
+  logoFile: File | null;
   address: AddressValue;
   licenseNumber: string;
   licenseFile: File | null;
@@ -27,6 +29,7 @@ export interface PharmacyDetailsValue {
 export const DEFAULT_PHARMACY_DETAILS: PharmacyDetailsValue = {
   legalName: "",
   displayName: "",
+  logoFile: null,
   address: { fullAddress: "", unit: "", city: "", province: "", postalCode: "", lat: 0, lng: 0 },
   licenseNumber: "",
   licenseFile: null,
@@ -58,6 +61,11 @@ export default function PharmacyDetails({ value, onChange }: Props) {
       description="Legal and operational information about your pharmacy."
       icon={Building2}
     >
+      {/* Logo */}
+      <div>
+        <LogoUpload value={value.logoFile} onChange={(f) => set("logoFile", f)} />
+      </div>
+
       {/* Names */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Pharmacy Legal Name" required>
