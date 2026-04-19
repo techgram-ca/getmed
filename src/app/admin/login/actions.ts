@@ -23,7 +23,7 @@ export async function adminLoginAction(
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (user?.user_metadata?.role !== "admin") {
+  if (user?.app_metadata?.role !== "admin") {
     await supabase.auth.signOut();
     return { error: "Access denied. This portal is for administrators only." };
   }

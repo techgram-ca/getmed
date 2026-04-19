@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 async function assertAdmin() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (user?.user_metadata?.role !== "admin") redirect("/admin/login");
+  if (user?.app_metadata?.role !== "admin") redirect("/admin/login");
 }
 
 export async function approvePharmacyAction(fd: FormData) {

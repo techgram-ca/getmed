@@ -31,7 +31,7 @@ export default async function AdminDashboardPage({
   // Auth guard
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (user?.user_metadata?.role !== "admin") redirect("/admin/login");
+  if (user?.app_metadata?.role !== "admin") redirect("/admin/login");
 
   const { status: rawStatus } = await searchParams;
   const filter = (["all","pending","approved","rejected","suspended"].includes(rawStatus ?? "")
