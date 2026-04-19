@@ -54,7 +54,7 @@ export async function pharmacySignupAction(
       password,
       app_metadata:  { role: "pharmacy" },
       user_metadata: { contact_name: contact },
-      email_confirm: false, // sends a verification email
+      email_confirm: true,
     });
 
   if (authError) {
