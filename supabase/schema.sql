@@ -25,6 +25,7 @@ create table if not exists public.pharmacies (
   -- Identity
   legal_name            text not null,
   display_name          text not null,
+  logo_url              text,            -- public URL from pharmacy-logos storage bucket
 
   -- Address
   full_address          text not null,
@@ -157,6 +158,13 @@ create policy "pharmacist_owner_update" on public.pharmacist_profiles
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values
   (
+    'pharmacy-logos',
+    'pharmacy-logos',
+    true,                     -- public: patients can view pharmacy logos
+    5242880,                  -- 5 MB
+    array['image/jpeg','image/jpg','image/png','image/webp']
+  ),
+  (
     'pharmacy-licenses',
     'pharmacy-licenses',
     false,                    -- private: only owner can read
@@ -175,6 +183,18 @@ on conflict (id) do nothing;
 -- ============================================================
 -- 8. Storage RLS Policies
 -- ============================================================
+
+-- Pharmacy logos: public read, owner upload
+create policy "pharmacy_logo_public_read" on storage.objects
+  for select to public
+  using (bucket_id = 'pharmacy-logos');
+
+create policy "pharmacy_logo_owner_upload" on storage.objects
+  for insert to authenticated
+  with check (
+    bucket_id = 'pharmacy-logos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
 
 -- Pharmacy licenses: only owner can upload / read their own license
 create policy "license_owner_upload" on storage.objects
@@ -202,3 +222,35 @@ create policy "pharmacist_photo_owner_upload" on storage.objects
     bucket_id = 'pharmacist-photos'
     and (storage.foldername(name))[1] = auth.uid()::text
   );
+
+-- ============================================================
+-- MIGRATION: Add logo_url to existing pharmacies table
+-- Run this block ONLY if the table already exists (skip if
+-- running the full schema above for the first time).
+-- ============================================================
+
+-- alter table public.pharmacies
+--   add column if not exists logo_url text;
+
+-- New storage bucket for pharmacy logos
+-- insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+-- values (
+--   'pharmacy-logos',
+--   'pharmacy-logos',
+--   true,
+--   5242880,
+--   array['image/jpeg','image/jpg','image/png','image/webp']
+-- )
+-- on conflict (id) do nothing;
+
+-- Storage RLS policies for pharmacy logos
+-- create policy "pharmacy_logo_public_read" on storage.objects
+--   for select to public
+--   using (bucket_id = 'pharmacy-logos');
+
+-- create policy "pharmacy_logo_owner_upload" on storage.objects
+--   for insert to authenticated
+--   with check (
+--     bucket_id = 'pharmacy-logos'
+--     and (storage.foldername(name))[1] = auth.uid()::text
+--   );

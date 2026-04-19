@@ -70,6 +70,9 @@ export default function SignupForm() {
       fd.append("services", JSON.stringify(form.services));
 
       // ── Files ─────────────────────────────────────────────────
+      if (form.pharmacy.logoFile) {
+        fd.append("logoFile", form.pharmacy.logoFile);
+      }
       if (form.pharmacy.licenseFile) {
         fd.append("licenseFile", form.pharmacy.licenseFile);
       }
