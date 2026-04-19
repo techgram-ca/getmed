@@ -46,7 +46,7 @@ export default async function PharmacyDetailPage({
   // Auth guard
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (user?.user_metadata?.role !== "admin") redirect("/admin/login");
+  if (user?.app_metadata?.role !== "admin") redirect("/admin/login");
 
   const { id } = await params;
   const { flash, error } = await searchParams;
