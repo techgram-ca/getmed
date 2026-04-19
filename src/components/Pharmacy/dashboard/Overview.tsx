@@ -32,7 +32,8 @@ const STATS = [
 ];
 
 export default function Overview({ pharmacy }: Props) {
-  const isPending = pharmacy.status === "pending";
+  const isPending  = pharmacy.status === "pending";
+  const isApproved = pharmacy.status === "approved";
 
   return (
     <div className="p-6 lg:p-8 max-w-[1100px]">
@@ -150,7 +151,7 @@ export default function Overview({ pharmacy }: Props) {
           {[
             { label: "Create your pharmacy account",           done: true  },
             { label: "Application under review by GetMed",    done: isPending },
-            { label: "Account approved & profile goes live",  done: !isPending },
+            { label: "Account approved & profile goes live",  done: isApproved },
             { label: "Receive your first online order",       done: false  },
           ].map(({ label, done }) => (
             <div key={label} className="flex items-center gap-3">
