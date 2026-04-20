@@ -47,7 +47,7 @@ export default async function SearchPage({
   const { data: rows } = await admin
     .from("pharmacies")
     .select(
-      "id, display_name, logo_url, full_address, city, province, phone, lat, lng, service_online_orders, service_delivery, service_consultation, opening_hours"
+      "id, display_name, logo_url, full_address, city, province, phone, lat, lng, url_slug, service_online_orders, service_delivery, service_consultation, opening_hours"
     )
     .eq("status", "approved")
     .not("lat", "is", null)
@@ -95,6 +95,7 @@ export default async function SearchPage({
         pharmacies={pharmacies}
         searchLat={lat}
         searchLng={lng}
+        searchAddress={address ?? null}
         radiusKm={radiusKm}
       />
     </div>

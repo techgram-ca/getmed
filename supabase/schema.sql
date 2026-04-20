@@ -26,6 +26,7 @@ create table if not exists public.pharmacies (
   legal_name            text not null,
   display_name          text not null,
   logo_url              text,            -- public URL from pharmacy-logos storage bucket
+  url_slug              text unique,     -- auto-generated from display_name + city
 
   -- Address
   full_address          text not null,
@@ -85,7 +86,34 @@ create table if not exists public.pharmacist_profiles (
 );
 
 -- ============================================================
--- 4. Auto-update timestamps trigger
+-- 4. Orders
+-- ============================================================
+create table if not exists public.orders (
+  id            uuid primary key default gen_random_uuid(),
+  pharmacy_id   uuid references public.pharmacies(id) on delete cascade not null,
+
+  order_type    text not null check (order_type in ('prescription', 'transfer', 'otc')),
+  patient_name  text not null,
+  patient_phone text not null,
+  patient_email text,
+  delivery_type text not null check (delivery_type in ('pickup', 'delivery')),
+  address       text,
+
+  -- Order-type specific fields stored as JSONB
+  details       jsonb not null default '{}',
+
+  -- Paths in prescription-uploads storage bucket
+  file_urls     text[] not null default '{}',
+
+  status        text not null default 'new'
+                  check (status in ('new', 'processing', 'ready', 'completed', 'cancelled')),
+
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+-- ============================================================
+-- 5. Auto-update timestamps trigger
 -- ============================================================
 create or replace function public.set_updated_at()
 returns trigger language plpgsql as $$
@@ -103,8 +131,12 @@ create trigger pharmacist_profiles_set_updated_at
   before update on public.pharmacist_profiles
   for each row execute function public.set_updated_at();
 
+create trigger orders_set_updated_at
+  before update on public.orders
+  for each row execute function public.set_updated_at();
+
 -- ============================================================
--- 5. App Settings  (key-value config, admin-managed)
+-- 6. App Settings  (key-value config, admin-managed)
 -- ============================================================
 create table if not exists public.app_settings (
   key        text primary key,
@@ -124,18 +156,23 @@ create policy "settings_public_read" on public.app_settings
   for select to anon, authenticated using (true);
 
 -- ============================================================
--- 6. Indexes
+-- 7. Indexes
 -- ============================================================
 create index if not exists pharmacies_user_id_idx         on public.pharmacies(user_id);
 create index if not exists pharmacies_status_idx          on public.pharmacies(status);
 create index if not exists pharmacies_city_province_idx   on public.pharmacies(city, province);
+create index if not exists pharmacies_url_slug_idx        on public.pharmacies(url_slug);
 create index if not exists pharmacist_profiles_pharm_idx  on public.pharmacist_profiles(pharmacy_id);
+create index if not exists orders_pharmacy_id_idx         on public.orders(pharmacy_id);
+create index if not exists orders_status_idx              on public.orders(status);
+create index if not exists orders_created_at_idx          on public.orders(created_at desc);
 
 -- ============================================================
--- 6. Row Level Security
+-- 8. Row Level Security
 -- ============================================================
 alter table public.pharmacies          enable row level security;
 alter table public.pharmacist_profiles enable row level security;
+alter table public.orders              enable row level security;
 
 -- Pharmacies: each pharmacy owner manages only their own row
 create policy "pharmacy_owner_select" on public.pharmacies
@@ -169,8 +206,24 @@ create policy "pharmacist_owner_update" on public.pharmacist_profiles
     where id = pharmacy_id and user_id = auth.uid()
   ));
 
+-- Orders: pharmacy owners can read and update their own pharmacy's orders
+-- (Inserts are done server-side via admin client — no anon insert policy needed)
+create policy "orders_pharmacy_select" on public.orders
+  for select to authenticated
+  using (exists (
+    select 1 from public.pharmacies
+    where id = pharmacy_id and user_id = auth.uid()
+  ));
+
+create policy "orders_pharmacy_update" on public.orders
+  for update to authenticated
+  using (exists (
+    select 1 from public.pharmacies
+    where id = pharmacy_id and user_id = auth.uid()
+  ));
+
 -- ============================================================
--- 7. Storage Buckets
+-- 9. Storage Buckets
 -- Run this block separately if the above completes successfully.
 -- Alternatively, create buckets via Supabase Dashboard → Storage.
 -- ============================================================
@@ -197,11 +250,18 @@ values
     true,                     -- public: patients can view
     5242880,                  -- 5 MB
     array['image/jpeg','image/jpg','image/png','image/webp']
+  ),
+  (
+    'prescription-uploads',
+    'prescription-uploads',
+    false,                    -- private: pharmacy staff only
+    20971520,                 -- 20 MB
+    array['image/jpeg','image/jpg','image/png','image/webp','application/pdf']
   )
 on conflict (id) do nothing;
 
 -- ============================================================
--- 8. Storage RLS Policies
+-- 10. Storage RLS Policies
 -- ============================================================
 
 -- Pharmacy logos: public read, owner upload
@@ -242,6 +302,98 @@ create policy "pharmacist_photo_owner_upload" on storage.objects
     bucket_id = 'pharmacist-photos'
     and (storage.foldername(name))[1] = auth.uid()::text
   );
+
+-- Prescription uploads: pharmacy owners can read uploads for their pharmacy
+-- (Inserts are done via admin client in submitOrderAction)
+create policy "prescription_uploads_pharmacy_read" on storage.objects
+  for select to authenticated
+  using (
+    bucket_id = 'prescription-uploads'
+    and exists (
+      select 1 from public.pharmacies
+      where id::text = (storage.foldername(name))[1]
+        and user_id = auth.uid()
+    )
+  );
+
+-- ============================================================
+-- MIGRATION: Add url_slug to existing pharmacies table
+-- Run this block ONLY if the table already exists.
+-- ============================================================
+
+-- alter table public.pharmacies
+--   add column if not exists url_slug text unique;
+
+-- create index if not exists pharmacies_url_slug_idx on public.pharmacies(url_slug);
+
+-- ============================================================
+-- MIGRATION: Add orders table (if it doesn't exist yet)
+-- ============================================================
+
+-- create table if not exists public.orders (
+--   id            uuid primary key default gen_random_uuid(),
+--   pharmacy_id   uuid references public.pharmacies(id) on delete cascade not null,
+--   order_type    text not null check (order_type in ('prescription', 'transfer', 'otc')),
+--   patient_name  text not null,
+--   patient_phone text not null,
+--   patient_email text,
+--   delivery_type text not null check (delivery_type in ('pickup', 'delivery')),
+--   address       text,
+--   details       jsonb not null default '{}',
+--   file_urls     text[] not null default '{}',
+--   status        text not null default 'new'
+--                   check (status in ('new', 'processing', 'ready', 'completed', 'cancelled')),
+--   created_at    timestamptz not null default now(),
+--   updated_at    timestamptz not null default now()
+-- );
+--
+-- create trigger orders_set_updated_at
+--   before update on public.orders
+--   for each row execute function public.set_updated_at();
+--
+-- alter table public.orders enable row level security;
+--
+-- create policy "orders_pharmacy_select" on public.orders
+--   for select to authenticated
+--   using (exists (
+--     select 1 from public.pharmacies
+--     where id = pharmacy_id and user_id = auth.uid()
+--   ));
+--
+-- create policy "orders_pharmacy_update" on public.orders
+--   for update to authenticated
+--   using (exists (
+--     select 1 from public.pharmacies
+--     where id = pharmacy_id and user_id = auth.uid()
+--   ));
+--
+-- create index if not exists orders_pharmacy_id_idx on public.orders(pharmacy_id);
+-- create index if not exists orders_status_idx on public.orders(status);
+-- create index if not exists orders_created_at_idx on public.orders(created_at desc);
+
+-- ============================================================
+-- MIGRATION: Add prescription-uploads bucket (if not exists)
+-- ============================================================
+
+-- insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+-- values (
+--   'prescription-uploads', 'prescription-uploads',
+--   false,
+--   20971520,
+--   array['image/jpeg','image/jpg','image/png','image/webp','application/pdf']
+-- )
+-- on conflict (id) do nothing;
+--
+-- create policy "prescription_uploads_pharmacy_read" on storage.objects
+--   for select to authenticated
+--   using (
+--     bucket_id = 'prescription-uploads'
+--     and exists (
+--       select 1 from public.pharmacies
+--       where id::text = (storage.foldername(name))[1]
+--         and user_id = auth.uid()
+--     )
+--   );
 
 -- ============================================================
 -- MIGRATION: Add logo_url to existing pharmacies table

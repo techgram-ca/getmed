@@ -9,10 +9,11 @@ interface Props {
   pharmacies: SearchPharmacy[];
   searchLat: number;
   searchLng: number;
+  searchAddress: string | null;
   radiusKm: number;
 }
 
-export default function SearchResults({ pharmacies, searchLat, searchLng, radiusKm }: Props) {
+export default function SearchResults({ pharmacies, searchLat, searchLng, searchAddress, radiusKm }: Props) {
   const [activeId, setActiveId]     = useState<string | null>(null);
   const [mobileTab, setMobileTab]   = useState<"list" | "map">("list");
 
@@ -71,6 +72,9 @@ export default function SearchResults({ pharmacies, searchLat, searchLng, radius
                   isActive={activeId === ph.id}
                   onMouseEnter={() => setActiveId(ph.id)}
                   onMouseLeave={() => setActiveId(null)}
+                  searchLat={searchLat}
+                  searchLng={searchLng}
+                  searchAddress={searchAddress}
                 />
               ))}
             </>
