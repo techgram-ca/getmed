@@ -41,13 +41,6 @@ interface Order {
   files: { path: string; url: string | null }[];
 }
 
-const STATS = [
-  { label: "Orders Today",    value: "0", icon: PackageCheck, color: "bg-[#e0f5f2] text-[#2a9d8f]" },
-  { label: "Pending Orders",  value: "0", icon: Clock,        color: "bg-amber-50 text-amber-600"    },
-  { label: "Total Patients",  value: "0", icon: Users,        color: "bg-blue-50 text-blue-600"      },
-  { label: "This Month",      value: "$0",icon: TrendingUp,   color: "bg-purple-50 text-purple-600"  },
-];
-
 function formatLabel(value: string) {
   return value
     .replace(/([A-Z])/g, " $1")
@@ -59,7 +52,33 @@ function formatLabel(value: string) {
 
 export default function Overview({ pharmacy, orders }: Props) {
   const isPending  = pharmacy.status === "pending";
-  const isApproved = pharmacy.status === "approved";
+  const today = new Date();
+  const ordersToday = orders.filter((order) => {
+    const orderDate = new Date(order.created_at);
+
+    return (
+      orderDate.getFullYear() === today.getFullYear()
+      && orderDate.getMonth() === today.getMonth()
+      && orderDate.getDate() === today.getDate()
+    );
+  }).length;
+
+  const pendingOrders = orders.filter(
+    (order) => order.status === "new" || order.status === "processing" || order.status === "ready"
+  ).length;
+
+  const uniquePatients = new Set(
+    orders.map((order) => `${order.patient_name}-${order.patient_phone}`)
+  ).size;
+
+  const deliveredOrders = orders.filter((order) => order.status === "completed").length;
+
+  const stats = [
+    { label: "Orders Today",           value: String(ordersToday),    icon: PackageCheck, color: "bg-[#e0f5f2] text-[#2a9d8f]" },
+    { label: "Pending Orders",         value: String(pendingOrders),  icon: Clock,        color: "bg-amber-50 text-amber-600"    },
+    { label: "Total Patients",         value: String(uniquePatients), icon: Users,        color: "bg-blue-50 text-blue-600"      },
+    { label: "Total Orders Delivered", value: String(deliveredOrders),icon: TrendingUp,   color: "bg-purple-50 text-purple-600"  },
+  ];
 
   return (
     <div className="p-6 lg:p-8 max-w-[1100px]">
@@ -91,7 +110,7 @@ export default function Overview({ pharmacy, orders }: Props) {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {STATS.map(({ label, value, icon: Icon, color }) => (
+        {stats.map(({ label, value, icon: Icon, color }) => (
           <div
             key={label}
             className="bg-white rounded-2xl border border-[#e2efed] p-5 shadow-sm"
@@ -263,37 +282,6 @@ export default function Overview({ pharmacy, orders }: Props) {
         </div>
       </div>
 
-      {/* Getting started checklist */}
-      <div className="mt-6 bg-gradient-to-r from-[#2a9d8f] to-[#21867a] rounded-2xl p-6 text-white">
-        <h2 className="text-base font-bold mb-4">Getting Started Checklist</h2>
-        <div className="space-y-2.5">
-          {[
-            { label: "Create your pharmacy account",           done: true  },
-            { label: "Application under review by GetMed",    done: isPending },
-            { label: "Account approved & profile goes live",  done: isApproved },
-            { label: "Receive your first online order",       done: false  },
-          ].map(({ label, done }) => (
-            <div key={label} className="flex items-center gap-3">
-              <div
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                  done
-                    ? "bg-white border-white"
-                    : "border-white/40"
-                }`}
-              >
-                {done && (
-                  <svg className="w-3 h-3 text-[#2a9d8f]" fill="none" viewBox="0 0 12 12">
-                    <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
-              </div>
-              <span className={`text-sm ${done ? "text-white font-medium" : "text-white/60"}`}>
-                {label}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
