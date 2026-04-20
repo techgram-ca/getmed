@@ -94,4 +94,3 @@ export async function submitOrderAction(
   return { error: null };
 }
 
-export { toSlug, uniqueSlug };
