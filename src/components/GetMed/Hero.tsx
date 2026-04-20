@@ -1,24 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
-import AddressAutocomplete from "./AddressAutocomplete";
+import AddressAutocomplete, { type PlaceResult } from "./AddressAutocomplete";
 
 const HERO_IMG =
   "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69b36369a43cace0e1e7f072/f87c6e70c_generated_1ccccf43.png";
 
 export default function Hero() {
-  const [address, setAddress] = useState("");
+  const router = useRouter();
+  const [place, setPlace] = useState<PlaceResult | null>(null);
 
   function handleSearch() {
-    const trimmed = address.trim();
-    if (!trimmed) {
+    if (!place) {
       document.getElementById("hero-address-input")?.focus();
       return;
     }
-    // TODO: navigate to pharmacy listing page
-    alert("Searching for pharmacies near: " + trimmed);
+    const params = new URLSearchParams({
+      lat:     place.lat.toString(),
+      lng:     place.lng.toString(),
+      address: place.address,
+    });
+    router.push(`/search?${params.toString()}`);
   }
 
   return (
@@ -43,7 +48,8 @@ export default function Hero() {
           <div className="mt-8 flex flex-wrap gap-3">
             <AddressAutocomplete
               inputId="hero-address-input"
-              onAddressChange={setAddress}
+              onAddressChange={() => setPlace(null)}
+              onPlaceSelect={setPlace}
               onEnter={handleSearch}
             />
             <Button size="search" onClick={handleSearch} className="flex items-center gap-2">

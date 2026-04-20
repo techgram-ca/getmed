@@ -7,8 +7,15 @@ import { cn } from "@/lib/utils";
 
 type Prediction = google.maps.places.AutocompletePrediction;
 
+export interface PlaceResult {
+  address: string;
+  lat: number;
+  lng: number;
+}
+
 interface Props {
   onAddressChange?: (address: string) => void;
+  onPlaceSelect?: (place: PlaceResult) => void;
   onEnter?: () => void;
   inputId?: string;
   className?: string;
@@ -16,6 +23,7 @@ interface Props {
 
 export default function AddressAutocomplete({
   onAddressChange,
+  onPlaceSelect,
   onEnter,
   inputId,
   className,
@@ -26,14 +34,19 @@ export default function AddressAutocomplete({
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
 
-  const serviceRef = useRef<google.maps.places.AutocompleteService | null>(null);
-  const tokenRef = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
+  const serviceRef  = useRef<google.maps.places.AutocompleteService | null>(null);
+  const placesRef   = useRef<google.maps.places.PlacesService | null>(null);
+  const tokenRef    = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
+  const hiddenRef   = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function init() {
       serviceRef.current = new google.maps.places.AutocompleteService();
-      tokenRef.current = new google.maps.places.AutocompleteSessionToken();
+      tokenRef.current   = new google.maps.places.AutocompleteSessionToken();
+      if (hiddenRef.current) {
+        placesRef.current = new google.maps.places.PlacesService(hiddenRef.current);
+      }
     }
 
     if (typeof google !== "undefined" && google.maps?.places) {
@@ -95,8 +108,25 @@ export default function AddressAutocomplete({
     setPredictions([]);
     setOpen(false);
     setActiveIndex(-1);
-    // Refresh session token after a billable selection
     tokenRef.current = new google.maps.places.AutocompleteSessionToken();
+
+    if (onPlaceSelect && placesRef.current) {
+      placesRef.current.getDetails(
+        { placeId: prediction.place_id, fields: ["geometry"] },
+        (result, status) => {
+          if (
+            status === google.maps.places.PlacesServiceStatus.OK &&
+            result?.geometry?.location
+          ) {
+            onPlaceSelect({
+              address: prediction.description,
+              lat: result.geometry.location.lat(),
+              lng: result.geometry.location.lng(),
+            });
+          }
+        }
+      );
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -122,6 +152,7 @@ export default function AddressAutocomplete({
 
   return (
     <div ref={containerRef} className={cn("relative flex-1 min-w-[220px]", className)}>
+      <div ref={hiddenRef} className="hidden" aria-hidden />
       <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b8280] pointer-events-none z-10" />
       {loading && (
         <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b8280] animate-spin z-10" />
@@ -153,10 +184,7 @@ export default function AddressAutocomplete({
                 "flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors border-b border-[#e2efed] last:border-b-0",
                 i === activeIndex ? "bg-[#f0fbf9]" : "hover:bg-[#f0fbf9]"
               )}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                handleSelect(p);
-              }}
+              onMouseDown={(e) => { e.preventDefault(); handleSelect(p); }}
               onMouseEnter={() => setActiveIndex(i)}
             >
               <MapPin className="w-4 h-4 text-[#2a9d8f] mt-0.5 shrink-0" />
