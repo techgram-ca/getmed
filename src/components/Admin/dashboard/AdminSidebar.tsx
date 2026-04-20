@@ -9,14 +9,16 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Settings,
   ShieldCheck,
   X,
 } from "lucide-react";
 import { adminLogoutAction } from "@/app/admin/login/actions";
 
 const NAV = [
-  { href: "/admin/dashboard",             icon: LayoutDashboard, label: "Overview"    },
-  { href: "/admin/dashboard/pharmacies",  icon: Building2,       label: "Pharmacies"  },
+  { href: "/admin/dashboard",            icon: LayoutDashboard, label: "Overview"   },
+  { href: "/admin/dashboard/pharmacies", icon: Building2,       label: "Pharmacies" },
+  { href: "/admin/dashboard/settings",   icon: Settings,        label: "Settings"   },
 ];
 
 export default function AdminSidebar() {

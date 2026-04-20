@@ -104,7 +104,27 @@ create trigger pharmacist_profiles_set_updated_at
   for each row execute function public.set_updated_at();
 
 -- ============================================================
--- 5. Indexes
+-- 5. App Settings  (key-value config, admin-managed)
+-- ============================================================
+create table if not exists public.app_settings (
+  key        text primary key,
+  value      text not null,
+  updated_at timestamptz not null default now()
+);
+
+-- Seed default radius
+insert into public.app_settings (key, value)
+values ('search_radius_km', '10')
+on conflict (key) do nothing;
+
+alter table public.app_settings enable row level security;
+
+-- Anyone can read settings (needed for public search page server-side)
+create policy "settings_public_read" on public.app_settings
+  for select to anon, authenticated using (true);
+
+-- ============================================================
+-- 6. Indexes
 -- ============================================================
 create index if not exists pharmacies_user_id_idx         on public.pharmacies(user_id);
 create index if not exists pharmacies_status_idx          on public.pharmacies(status);
@@ -254,3 +274,19 @@ create policy "pharmacist_photo_owner_upload" on storage.objects
 --     bucket_id = 'pharmacy-logos'
 --     and (storage.foldername(name))[1] = auth.uid()::text
 --   );
+
+-- ============================================================
+-- MIGRATION: Add app_settings table (if table doesn't exist yet)
+-- ============================================================
+
+-- create table if not exists public.app_settings (
+--   key        text primary key,
+--   value      text not null,
+--   updated_at timestamptz not null default now()
+-- );
+-- insert into public.app_settings (key, value)
+-- values ('search_radius_km', '10')
+-- on conflict (key) do nothing;
+-- alter table public.app_settings enable row level security;
+-- create policy "settings_public_read" on public.app_settings
+--   for select to anon, authenticated using (true);
