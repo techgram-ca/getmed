@@ -15,6 +15,29 @@ function adminClient() {
   );
 }
 
+function toSlug(displayName: string, city: string) {
+  return `${displayName}-${city}`
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
+async function uniqueSlug(supabase: ReturnType<typeof adminClient>, base: string) {
+  let slug = base;
+  let attempt = 2;
+  for (;;) {
+    const { data } = await supabase
+      .from("pharmacies")
+      .select("id")
+      .eq("url_slug", slug)
+      .maybeSingle();
+    if (!data) return slug;
+    slug = `${base}-${attempt++}`;
+  }
+}
+
 // ----------------------------------------------------------------
 // pharmacySignupAction
 //
@@ -110,6 +133,9 @@ export async function pharmacySignupAction(
   }
 
   // ── 3. Insert pharmacy row ────────────────────────────────────
+  const baseSlug = toSlug(pharmacy.displayName, pharmacy.address.city);
+  const urlSlug  = await uniqueSlug(supabase, baseSlug);
+
   const { data: pharmacyRow, error: pharmacyError } = await supabase
     .from("pharmacies")
     .insert({
@@ -119,6 +145,7 @@ export async function pharmacySignupAction(
       legal_name:           pharmacy.legalName,
       display_name:         pharmacy.displayName,
       logo_url:             logoUrl,
+      url_slug:             urlSlug,
       full_address:         pharmacy.address.fullAddress,
       unit:                 pharmacy.address.unit      || null,
       city:                 pharmacy.address.city,

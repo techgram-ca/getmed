@@ -10,6 +10,7 @@ export interface SearchPharmacy {
   phone: string;
   lat: number | null;
   lng: number | null;
+  url_slug: string | null;
   distance_km: number;
   service_online_orders: boolean;
   service_delivery: boolean;
@@ -23,6 +24,9 @@ interface Props {
   isActive: boolean;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  searchLat?: number;
+  searchLng?: number;
+  searchAddress?: string | null;
 }
 
 function isOpenNow(hours: Record<string, { open: boolean; openTime: string; closeTime: string }>) {
@@ -38,7 +42,7 @@ function isOpenNow(hours: Record<string, { open: boolean; openTime: string; clos
   return cur >= oH * 60 + oM && cur < cH * 60 + cM;
 }
 
-export default function PharmacyCard({ pharmacy: ph, index, isActive, onMouseEnter, onMouseLeave }: Props) {
+export default function PharmacyCard({ pharmacy: ph, index, isActive, onMouseEnter, onMouseLeave, searchLat, searchLng, searchAddress }: Props) {
   const open = isOpenNow(ph.opening_hours ?? {});
 
   return (
@@ -119,7 +123,15 @@ export default function PharmacyCard({ pharmacy: ph, index, isActive, onMouseEnt
       {/* CTA buttons */}
       <div className="flex gap-2 mt-3">
         <a
-          href={`/order?pharmacy=${ph.id}`}
+          href={(() => {
+            const slug = ph.url_slug ?? ph.id;
+            const p = new URLSearchParams();
+            if (searchAddress) p.set("address", searchAddress);
+            if (searchLat != null) p.set("lat", searchLat.toString());
+            if (searchLng != null) p.set("lng", searchLng.toString());
+            const qs = p.toString();
+            return `/${slug}${qs ? `?${qs}` : ""}`;
+          })()}
           className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#2a9d8f] text-white text-xs font-bold hover:bg-[#21867a] transition-colors no-underline"
         >
           <ShoppingBag className="w-3.5 h-3.5" />
