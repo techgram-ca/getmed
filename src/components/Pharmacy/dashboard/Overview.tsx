@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 interface Pharmacy {
+  id: string;
   display_name: string;
   status: string;
   contact_name: string;
@@ -22,6 +23,22 @@ interface Pharmacy {
 
 interface Props {
   pharmacy: Pharmacy;
+  orders: Order[];
+}
+
+interface Order {
+  id: string;
+  order_type: "prescription" | "transfer" | "otc";
+  patient_name: string;
+  patient_phone: string;
+  patient_email: string | null;
+  delivery_type: "pickup" | "delivery";
+  address: string | null;
+  details: Record<string, unknown>;
+  file_urls: string[];
+  status: "new" | "processing" | "ready" | "completed" | "cancelled";
+  created_at: string;
+  files: { path: string; url: string | null }[];
 }
 
 const STATS = [
@@ -31,7 +48,16 @@ const STATS = [
   { label: "This Month",      value: "$0",icon: TrendingUp,   color: "bg-purple-50 text-purple-600"  },
 ];
 
-export default function Overview({ pharmacy }: Props) {
+function formatLabel(value: string) {
+  return value
+    .replace(/([A-Z])/g, " $1")
+    .replace(/_/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^./, (ch) => ch.toUpperCase());
+}
+
+export default function Overview({ pharmacy, orders }: Props) {
   const isPending  = pharmacy.status === "pending";
   const isApproved = pharmacy.status === "approved";
 
@@ -92,15 +118,108 @@ export default function Overview({ pharmacy }: Props) {
               View all <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
-          <div className="px-6 py-12 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-[#e0f5f2] flex items-center justify-center mx-auto mb-3">
-              <PackageCheck className="w-6 h-6 text-[#2a9d8f]" />
+          {orders.length === 0 ? (
+            <div className="px-6 py-12 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-[#e0f5f2] flex items-center justify-center mx-auto mb-3">
+                <PackageCheck className="w-6 h-6 text-[#2a9d8f]" />
+              </div>
+              <p className="text-sm font-semibold text-[#0d1f1c]">No orders yet</p>
+              <p className="text-xs text-[#6b8280] mt-1 max-w-[200px] mx-auto">
+                Orders from patients will appear here once your account is active.
+              </p>
             </div>
-            <p className="text-sm font-semibold text-[#0d1f1c]">No orders yet</p>
-            <p className="text-xs text-[#6b8280] mt-1 max-w-[200px] mx-auto">
-              Orders from patients will appear here once your account is active.
-            </p>
-          </div>
+          ) : (
+            <div className="divide-y divide-[#e2efed] max-h-[32rem] overflow-y-auto">
+              {orders.map((order) => (
+                <article key={order.id} className="p-5 space-y-4">
+                  <div className="flex flex-wrap items-center gap-2 justify-between">
+                    <p className="text-sm font-bold text-[#0d1f1c]">
+                      {formatLabel(order.order_type)} order
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#e8f6f4] text-[#1f7f74]">
+                        {formatLabel(order.status)}
+                      </span>
+                      <span className="text-xs text-[#6b8280]">
+                        {new Date(order.created_at).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <dt className="text-[#6b8280]">Patient</dt>
+                      <dd className="font-medium text-[#0d1f1c]">{order.patient_name}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[#6b8280]">Phone</dt>
+                      <dd className="font-medium text-[#0d1f1c]">{order.patient_phone}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[#6b8280]">Email</dt>
+                      <dd className="font-medium text-[#0d1f1c]">{order.patient_email || "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[#6b8280]">Delivery</dt>
+                      <dd className="font-medium text-[#0d1f1c]">
+                        {formatLabel(order.delivery_type)}
+                      </dd>
+                    </div>
+                    {order.address && (
+                      <div className="sm:col-span-2">
+                        <dt className="text-[#6b8280]">Address</dt>
+                        <dd className="font-medium text-[#0d1f1c]">{order.address}</dd>
+                      </div>
+                    )}
+                  </dl>
+
+                  <div>
+                    <p className="text-xs font-semibold text-[#0d1f1c] mb-2">Order details</p>
+                    <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                      {Object.entries(order.details ?? {}).length === 0 ? (
+                        <p className="text-[#6b8280]">No extra details provided.</p>
+                      ) : (
+                        Object.entries(order.details ?? {}).map(([key, value]) => (
+                          <div key={key}>
+                            <dt className="text-[#6b8280]">{formatLabel(key)}</dt>
+                            <dd className="font-medium text-[#0d1f1c] break-words">
+                              {String(value || "—")}
+                            </dd>
+                          </div>
+                        ))
+                      )}
+                    </dl>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-semibold text-[#0d1f1c] mb-2">Files</p>
+                    {order.files.length === 0 ? (
+                      <p className="text-xs text-[#6b8280]">No files uploaded.</p>
+                    ) : (
+                      <ul className="space-y-1.5">
+                        {order.files.map((file) => (
+                          <li key={file.path}>
+                            {file.url ? (
+                              <a
+                                href={file.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-xs text-[#2a9d8f] font-semibold hover:underline break-all"
+                              >
+                                {file.path.split("/").at(-1)}
+                              </a>
+                            ) : (
+                              <span className="text-xs text-[#6b8280] break-all">{file.path}</span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Services & Setup */}
