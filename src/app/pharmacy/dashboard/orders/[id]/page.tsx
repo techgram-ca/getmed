@@ -64,7 +64,7 @@ export default async function PharmacyOrderDetailPage({
     ? await supabase.storage.from("prescription-uploads").createSignedUrls(order.file_urls, 60 * 60)
     : { data: [] as { signedUrl: string | null }[] };
 
-  const files = (order.file_urls ?? []).map((path, index) => ({
+  const files = (order.file_urls ?? []).map((path: string, index: number) => ({
     path,
     url: signedFiles?.[index]?.signedUrl ?? null,
   }));
@@ -158,7 +158,7 @@ export default async function PharmacyOrderDetailPage({
             <h2 className="text-sm font-bold text-[#0d1f1c] mb-3">Uploaded files</h2>
             {files.length > 0 ? (
               <ul className="space-y-2">
-                {files.map((file) => (
+                {files.map((file: { path: string; url: string | null }) => (
                   <li key={file.path}>
                     {file.url ? (
                       <a
