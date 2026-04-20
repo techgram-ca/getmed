@@ -42,7 +42,7 @@ export default async function PharmacyDashboardPage() {
         .from("prescription-uploads")
         .createSignedUrls(order.file_urls, 60 * 60);
 
-      const files = order.file_urls.map((path, index) => ({
+      const files = (order.file_urls as string[]).map((path: string, index: number) => ({
         path,
         url: signedFiles?.[index]?.signedUrl ?? null,
       }));
