@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { sendSms, smsStatusUpdate } from "@/lib/twilio";
 
 const TRANSITIONS: Record<string, string[]> = {
   new:        ["processing", "cancelled"],
@@ -30,7 +31,7 @@ export async function updateOrderStatusAction(
 
   const { data: order } = await supabase
     .from("orders")
-    .select("id, status")
+    .select("id, status, patient_name, patient_phone, delivery_type")
     .eq("id", orderId)
     .eq("pharmacy_id", pharmacy.id)
     .single();
@@ -48,6 +49,12 @@ export async function updateOrderStatusAction(
     .eq("id", orderId);
 
   if (error) return { error: error.message };
+
+  // ── SMS to patient (non-fatal) ────────────────────────────────
+  const message = smsStatusUpdate(newStatus, order.patient_name, order.delivery_type);
+  if (message && order.patient_phone) {
+    await sendSms(order.patient_phone, message);
+  }
 
   revalidatePath("/pharmacy/dashboard/orders");
   revalidatePath(`/pharmacy/dashboard/orders/${orderId}`);
