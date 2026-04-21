@@ -3,7 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { sendSms, smsPharmacyApproved, smsPharmacyRejected } from "@/lib/twilio";
+import { sendSmsTpl } from "@/lib/twilio";
 
 async function assertAdmin() {
   const supabase = await createClient();
@@ -28,10 +28,10 @@ export async function approvePharmacyAction(fd: FormData) {
     .eq("id", id);
 
   if (pharmacy?.phone) {
-    await sendSms(
-      pharmacy.phone,
-      smsPharmacyApproved(pharmacy.contact_name, pharmacy.display_name)
-    );
+    await sendSmsTpl(pharmacy.phone, "pharmacy_approved", {
+      contactName: pharmacy.contact_name,
+      displayName: pharmacy.display_name,
+    });
   }
 
   redirect(`/admin/dashboard/pharmacies/${id}?flash=approved`);
@@ -62,10 +62,11 @@ export async function rejectPharmacyAction(fd: FormData) {
     .eq("id", id);
 
   if (pharmacy?.phone) {
-    await sendSms(
-      pharmacy.phone,
-      smsPharmacyRejected(pharmacy.contact_name, pharmacy.display_name, reason)
-    );
+    await sendSmsTpl(pharmacy.phone, "pharmacy_rejected", {
+      contactName: pharmacy.contact_name,
+      displayName: pharmacy.display_name,
+      reason,
+    });
   }
 
   redirect(`/admin/dashboard/pharmacies/${id}?flash=rejected`);

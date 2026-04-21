@@ -40,3 +40,43 @@ export async function updateRadiusAction(fd: FormData) {
 
   redirect("/admin/dashboard/settings?flash=saved");
 }
+
+export async function toggleSmsAction(fd: FormData) {
+  await assertAdmin();
+  const enabled = fd.get("sms_enabled") === "true";
+  const admin = createAdminClient();
+  await admin
+    .from("app_settings")
+    .upsert({ key: "sms_enabled", value: enabled ? "true" : "false", updated_at: new Date().toISOString() });
+
+  redirect("/admin/dashboard/settings?flash=saved#sms");
+}
+
+export async function updateSmsTemplateAction(fd: FormData): Promise<{ error: string | null }> {
+  await assertAdmin();
+  const templateKey = fd.get("templateKey") as string;
+  const body        = (fd.get("body") as string).trim();
+
+  if (!templateKey || !body) return { error: "Template key and body are required." };
+
+  const admin = createAdminClient();
+  await admin
+    .from("app_settings")
+    .upsert({ key: `sms_tpl_${templateKey}`, value: body, updated_at: new Date().toISOString() });
+
+  return { error: null };
+}
+
+export async function resetSmsTemplateAction(fd: FormData) {
+  await assertAdmin();
+  const templateKey = fd.get("templateKey") as string;
+  if (!templateKey) return;
+
+  const admin = createAdminClient();
+  await admin
+    .from("app_settings")
+    .delete()
+    .eq("key", `sms_tpl_${templateKey}`);
+
+  redirect("/admin/dashboard/settings?flash=saved#sms");
+}

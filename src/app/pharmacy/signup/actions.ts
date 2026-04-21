@@ -1,11 +1,7 @@
 "use server";
 
 import { createClient } from "@supabase/supabase-js";
-import {
-  sendSms,
-  smsPharmacySignupConfirmation,
-  smsPharmacySignupAdmin,
-} from "@/lib/twilio";
+import { sendSmsTpl } from "@/lib/twilio";
 
 // ----------------------------------------------------------------
 // Service-role admin client — server only, never exposed to browser.
@@ -231,18 +227,18 @@ export async function pharmacySignupAction(
   // ── SMS notifications (non-fatal) ────────────────────────────
   const adminPhone = process.env.ADMIN_PHONE_NUMBER;
   await Promise.all([
-    sendSms(phone, smsPharmacySignupConfirmation(contact, pharmacy.displayName)),
+    sendSmsTpl(phone, "pharmacy_signup", {
+      contactName: contact,
+      displayName: pharmacy.displayName,
+    }),
     adminPhone
-      ? sendSms(
-          adminPhone,
-          smsPharmacySignupAdmin(
-            pharmacy.displayName,
-            pharmacy.address.city,
-            pharmacy.address.province,
-            contact,
-            phone
-          )
-        )
+      ? sendSmsTpl(adminPhone, "pharmacy_signup_admin", {
+          displayName: pharmacy.displayName,
+          city:        pharmacy.address.city,
+          province:    pharmacy.address.province,
+          contactName: contact,
+          phone,
+        })
       : Promise.resolve(),
   ]);
 

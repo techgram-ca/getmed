@@ -2,9 +2,8 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
-  sendSms,
-  smsOrderConfirmationPatient,
-  smsOrderConfirmationPharmacy,
+  sendSmsTpl,
+  orderTypeLabel,
 } from "@/lib/twilio";
 
 export async function submitOrderAction(
@@ -111,16 +110,21 @@ export async function submitOrderAction(
   const pharmacyName  = pharmacy?.display_name ?? "the pharmacy";
   const pharmacyPhone = pharmacy?.phone ?? "";
 
+  const deliveryLabel = deliveryType === "delivery" ? "Delivery" : "Pickup";
   await Promise.all([
-    sendSms(
-      patientPhone,
-      smsOrderConfirmationPatient(patientName, pharmacyName, orderType, orderId)
-    ),
+    sendSmsTpl(patientPhone, "order_patient", {
+      patientName,
+      orderType:    orderTypeLabel(orderType),
+      pharmacyName,
+      orderId:      orderId.slice(-8).toUpperCase(),
+    }),
     pharmacyPhone
-      ? sendSms(
-          pharmacyPhone,
-          smsOrderConfirmationPharmacy(patientName, patientPhone, orderType, deliveryType)
-        )
+      ? sendSmsTpl(pharmacyPhone, "order_pharmacy", {
+          patientName,
+          patientPhone,
+          orderType:    orderTypeLabel(orderType),
+          deliveryType: deliveryLabel,
+        })
       : Promise.resolve(),
   ]);
 

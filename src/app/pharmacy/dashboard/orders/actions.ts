@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { sendSms, smsStatusUpdate } from "@/lib/twilio";
+import { sendSmsTpl, statusToTemplateKey } from "@/lib/twilio";
 
 const TRANSITIONS: Record<string, string[]> = {
   new:        ["processing", "cancelled"],
@@ -52,9 +52,9 @@ export async function updateOrderStatusAction(
   if (error) return { error: error.message };
 
   // ── SMS to patient (non-fatal) ────────────────────────────────
-  const message = smsStatusUpdate(newStatus, order.patient_name, order.delivery_type);
-  if (message && order.patient_phone) {
-    await sendSms(order.patient_phone, message);
+  const templateKey = statusToTemplateKey(newStatus, order.delivery_type);
+  if (templateKey && order.patient_phone) {
+    await sendSmsTpl(order.patient_phone, templateKey, { patientName: order.patient_name });
   }
 
   revalidatePath("/pharmacy/dashboard/orders");
