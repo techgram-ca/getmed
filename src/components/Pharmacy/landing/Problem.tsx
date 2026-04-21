@@ -6,7 +6,7 @@ const PROBLEMS = [
     icon: UserMinus,
     title: "Customers Are Walking Out — Digitally",
     body: "Every day, patients discover PocketPills, Pillway, or Amazon Pharmacy. Once they switch, they rarely come back. You're losing loyal customers to platforms that exist entirely online.",
-    stat: "23% of independent pharmacy patients switched to online services in 2023",
+    stat: "32% of independent pharmacy patients switched to online services in 2025",
   },
   {
     icon: ShoppingCart,
