@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { CheckCircle2, Package, Phone, ShieldAlert, Truck, Upload, X } from "lucide-react";
 import { submitOrderAction } from "@/app/(getmed)/[slug]/actions";
+import AddressAutocomplete from "@/components/GetMed/AddressAutocomplete";
 
 interface Props {
   pharmacyId: string;
@@ -126,6 +127,7 @@ export default function PrescriptionForm({ pharmacyId, defaultAddress, hasDelive
   );
   const [rxFiles, setRxFiles]   = useState<File[]>([]);
   const [insFiles, setInsFiles] = useState<File[]>([]);
+  const [address, setAddress]   = useState(defaultAddress ?? "");
   const rxRef                   = useRef<HTMLInputElement>(null);
   const insRef                  = useRef<HTMLInputElement>(null);
   const formRef                 = useRef<HTMLFormElement>(null);
@@ -135,6 +137,10 @@ export default function PrescriptionForm({ pharmacyId, defaultAddress, hasDelive
     setError(null);
     if (rxFiles.length === 0) {
       setError("Please upload at least one prescription file.");
+      return;
+    }
+    if (delivery === "delivery" && !address.trim()) {
+      setError("Please enter a delivery address.");
       return;
     }
     const fd = new FormData(e.currentTarget);
@@ -270,11 +276,13 @@ export default function PrescriptionForm({ pharmacyId, defaultAddress, hasDelive
               <label className="block text-sm font-semibold text-[#0d1f1c] mb-1.5">
                 Delivery Address <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text" name="address" required
-                defaultValue={defaultAddress ?? ""}
-                placeholder="123 Main St, Toronto, ON M5V 1A1"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#e2efed] text-sm focus:outline-none focus:ring-2 focus:ring-[#2a9d8f]/30 focus:border-[#2a9d8f] transition-colors"
+              <input type="hidden" name="address" value={address} />
+              <AddressAutocomplete
+                inputId="prescription-address"
+                defaultValue={defaultAddress ?? undefined}
+                placeholder="Start typing your address…"
+                className="w-full min-w-0"
+                onAddressChange={(v) => setAddress(v)}
               />
             </div>
             <div>
