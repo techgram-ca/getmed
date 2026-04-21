@@ -1,6 +1,11 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  sendSms,
+  smsOrderConfirmationPatient,
+  smsOrderConfirmationPharmacy,
+} from "@/lib/twilio";
 
 export async function submitOrderAction(
   fd: FormData
@@ -79,7 +84,7 @@ export async function submitOrderAction(
 
   const allFilePaths = [...prescriptionFilePaths, ...insuranceFilePaths];
 
-  const { error } = await admin.from("orders").insert({
+  const { data, error } = await admin.from("orders").insert({
     pharmacy_id:   pharmacyId,
     order_type:    orderType,
     patient_name:  patientName,
@@ -89,8 +94,35 @@ export async function submitOrderAction(
     address:       deliveryType === "delivery" ? (address || null) : null,
     details,
     file_urls:     allFilePaths,
-  });
+  }).select("id").single();
 
   if (error) return { error: error.message };
+
+  // ── SMS notifications (non-fatal) ────────────────────────────
+  const orderId = (data as { id: string } | null)?.id ?? "";
+
+  // Fetch pharmacy display name + phone for messages
+  const { data: pharmacy } = await admin
+    .from("pharmacies")
+    .select("display_name, phone")
+    .eq("id", pharmacyId)
+    .single();
+
+  const pharmacyName  = pharmacy?.display_name ?? "the pharmacy";
+  const pharmacyPhone = pharmacy?.phone ?? "";
+
+  await Promise.all([
+    sendSms(
+      patientPhone,
+      smsOrderConfirmationPatient(patientName, pharmacyName, orderType, orderId)
+    ),
+    pharmacyPhone
+      ? sendSms(
+          pharmacyPhone,
+          smsOrderConfirmationPharmacy(patientName, patientPhone, orderType, deliveryType)
+        )
+      : Promise.resolve(),
+  ]);
+
   return { error: null };
 }

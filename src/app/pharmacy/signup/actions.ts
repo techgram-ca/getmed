@@ -1,6 +1,11 @@
 "use server";
 
 import { createClient } from "@supabase/supabase-js";
+import {
+  sendSms,
+  smsPharmacySignupConfirmation,
+  smsPharmacySignupAdmin,
+} from "@/lib/twilio";
 
 // ----------------------------------------------------------------
 // Service-role admin client — server only, never exposed to browser.
@@ -222,6 +227,24 @@ export async function pharmacySignupAction(
       console.error("[signup] pharmacist_profiles insert failed:", phError.message);
     }
   }
+
+  // ── SMS notifications (non-fatal) ────────────────────────────
+  const adminPhone = process.env.ADMIN_PHONE_NUMBER;
+  await Promise.all([
+    sendSms(phone, smsPharmacySignupConfirmation(contact, pharmacy.displayName)),
+    adminPhone
+      ? sendSms(
+          adminPhone,
+          smsPharmacySignupAdmin(
+            pharmacy.displayName,
+            pharmacy.address.city,
+            pharmacy.address.province,
+            contact,
+            phone
+          )
+        )
+      : Promise.resolve(),
+  ]);
 
   return { error: null };
 }

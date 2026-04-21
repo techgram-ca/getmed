@@ -3,6 +3,13 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import {
+  sendSms,
+  smsDriverApproved,
+  smsDriverRejected,
+  smsDriverSuspended,
+  smsDriverReactivated,
+} from "@/lib/twilio";
 
 async function assertAdmin() {
   const supabase = await createClient();
@@ -12,13 +19,23 @@ async function assertAdmin() {
 
 export async function approveDriverAction(fd: FormData) {
   await assertAdmin();
-  const id = fd.get("driverId") as string;
-
+  const id    = fd.get("driverId") as string;
   const admin = createAdminClient();
+
+  const { data: driver } = await admin
+    .from("drivers")
+    .select("full_name, phone")
+    .eq("id", id)
+    .single();
+
   await admin
     .from("drivers")
     .update({ status: "approved", reviewed_at: new Date().toISOString(), rejection_reason: null })
     .eq("id", id);
+
+  if (driver?.phone) {
+    await sendSms(driver.phone, smsDriverApproved(driver.full_name));
+  }
 
   redirect(`/admin/dashboard/drivers/${id}?flash=approved`);
 }
@@ -31,6 +48,13 @@ export async function rejectDriverAction(fd: FormData) {
   if (!reason) redirect(`/admin/dashboard/drivers/${id}?error=reason_required`);
 
   const admin = createAdminClient();
+
+  const { data: driver } = await admin
+    .from("drivers")
+    .select("full_name, phone")
+    .eq("id", id)
+    .single();
+
   await admin
     .from("drivers")
     .update({
@@ -40,31 +64,55 @@ export async function rejectDriverAction(fd: FormData) {
     })
     .eq("id", id);
 
+  if (driver?.phone) {
+    await sendSms(driver.phone, smsDriverRejected(driver.full_name, reason));
+  }
+
   redirect(`/admin/dashboard/drivers/${id}?flash=rejected`);
 }
 
 export async function suspendDriverAction(fd: FormData) {
   await assertAdmin();
-  const id = fd.get("driverId") as string;
-
+  const id    = fd.get("driverId") as string;
   const admin = createAdminClient();
+
+  const { data: driver } = await admin
+    .from("drivers")
+    .select("full_name, phone")
+    .eq("id", id)
+    .single();
+
   await admin
     .from("drivers")
     .update({ status: "suspended", reviewed_at: new Date().toISOString() })
     .eq("id", id);
+
+  if (driver?.phone) {
+    await sendSms(driver.phone, smsDriverSuspended(driver.full_name));
+  }
 
   redirect(`/admin/dashboard/drivers/${id}?flash=suspended`);
 }
 
 export async function reactivateDriverAction(fd: FormData) {
   await assertAdmin();
-  const id = fd.get("driverId") as string;
-
+  const id    = fd.get("driverId") as string;
   const admin = createAdminClient();
+
+  const { data: driver } = await admin
+    .from("drivers")
+    .select("full_name, phone")
+    .eq("id", id)
+    .single();
+
   await admin
     .from("drivers")
     .update({ status: "approved", reviewed_at: new Date().toISOString(), rejection_reason: null })
     .eq("id", id);
+
+  if (driver?.phone) {
+    await sendSms(driver.phone, smsDriverReactivated(driver.full_name));
+  }
 
   redirect(`/admin/dashboard/drivers/${id}?flash=reactivated`);
 }
