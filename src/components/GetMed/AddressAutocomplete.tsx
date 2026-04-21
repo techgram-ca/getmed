@@ -20,6 +20,7 @@ interface Props {
   inputId?: string;
   className?: string;
   placeholder?: string;
+  defaultValue?: string;
 }
 
 export default function AddressAutocomplete({
@@ -29,8 +30,9 @@ export default function AddressAutocomplete({
   inputId,
   className,
   placeholder = "Enter your delivery address...",
+  defaultValue,
 }: Props) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(defaultValue ?? "");
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { submitOrderAction } from "@/app/(getmed)/[slug]/actions";
+import AddressAutocomplete from "@/components/GetMed/AddressAutocomplete";
 
 interface Props {
   pharmacyId: string;
@@ -17,10 +18,15 @@ export default function OTCForm({ pharmacyId, defaultAddress, hasDelivery }: Pro
   const [delivery, setDelivery]    = useState<"pickup" | "delivery">(
     hasDelivery ? "delivery" : "pickup"
   );
+  const [address, setAddress] = useState(defaultAddress ?? "");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    if (delivery === "delivery" && !address.trim()) {
+      setError("Please enter a delivery address.");
+      return;
+    }
     const fd = new FormData(e.currentTarget);
     startTransition(async () => {
       const res = await submitOrderAction(fd);
@@ -183,11 +189,13 @@ export default function OTCForm({ pharmacyId, defaultAddress, hasDelivery }: Pro
             <label className="block text-sm font-semibold text-[#0d1f1c] mb-1.5">
               Delivery Address <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text" name="address" required
-              defaultValue={defaultAddress ?? ""}
-              placeholder="123 Main St, Toronto, ON M5V 1A1"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#e2efed] text-sm focus:outline-none focus:ring-2 focus:ring-[#2a9d8f]/30 focus:border-[#2a9d8f] transition-colors"
+            <input type="hidden" name="address" value={address} />
+            <AddressAutocomplete
+              inputId="otc-address"
+              defaultValue={defaultAddress ?? undefined}
+              placeholder="Start typing your address…"
+              className="w-full min-w-0"
+              onAddressChange={(v) => setAddress(v)}
             />
           </div>
         )}
