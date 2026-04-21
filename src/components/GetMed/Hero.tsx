@@ -7,7 +7,7 @@ import { Search } from "lucide-react";
 import AddressAutocomplete, { type PlaceResult } from "./AddressAutocomplete";
 
 const HERO_IMG =
-  "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69b36369a43cace0e1e7f072/f87c6e70c_generated_1ccccf43.png";
+  "images/hero.png";
 
 export default function Hero() {
   const router = useRouter();
