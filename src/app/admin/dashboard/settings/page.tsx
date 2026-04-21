@@ -4,6 +4,7 @@ import { CheckCircle2, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import AdminSidebar from "@/components/Admin/dashboard/AdminSidebar";
+import AdminPasswordChangeForm from "@/components/Admin/dashboard/AdminPasswordChangeForm";
 import { updateRadiusAction } from "./actions";
 
 export const metadata: Metadata = { title: "Settings — GetMed Admin" };
@@ -98,6 +99,17 @@ export default async function AdminSettingsPage({
                   Save Settings
                 </button>
               </form>
+            </div>
+          </div>
+
+          {/* Password change */}
+          <div className="bg-white rounded-2xl border border-[#e2efed] shadow-sm overflow-hidden mt-6">
+            <div className="px-6 py-4 border-b border-[#e2efed] flex items-center gap-2">
+              <Settings className="w-4 h-4 text-[#2a9d8f]" />
+              <h2 className="text-sm font-bold text-[#0d1f1c]">Change Password</h2>
+            </div>
+            <div className="px-6 py-6">
+              <AdminPasswordChangeForm />
             </div>
           </div>
         </div>
