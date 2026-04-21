@@ -1,7 +1,7 @@
 const STEP_IMGS = [
-  "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69b36369a43cace0e1e7f072/77d1aa5d4_generated_22e3178e.png",
-  "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69b36369a43cace0e1e7f072/fb1054ed6_generated_9edb1e52.png",
-  "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69b36369a43cace0e1e7f072/58dd76f72_generated_7a18544e.png",
+  "images/order.png",
+  "images/verification.png",
+  "images/delivery.png",
 ];
 
 const steps = [
