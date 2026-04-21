@@ -1,11 +1,7 @@
 "use server";
 
 import { createClient } from "@supabase/supabase-js";
-import {
-  sendSms,
-  smsDriverSignupConfirmation,
-  smsDriverSignupAdmin,
-} from "@/lib/twilio";
+import { sendSmsTpl } from "@/lib/twilio";
 
 function adminClient() {
   return createClient(
@@ -152,12 +148,15 @@ export async function driverSignupAction(
   // ── SMS notifications (non-fatal) ────────────────────────────
   const adminPhone = process.env.ADMIN_PHONE_NUMBER;
   await Promise.all([
-    sendSms(phone, smsDriverSignupConfirmation(fullName)),
+    sendSmsTpl(phone, "driver_signup", { fullName }),
     adminPhone
-      ? sendSms(
-          adminPhone,
-          smsDriverSignupAdmin(fullName, city, province, vehicleType, phone)
-        )
+      ? sendSmsTpl(adminPhone, "driver_signup_admin", {
+          fullName,
+          city,
+          province,
+          vehicleType: vehicleType || "Not specified",
+          phone,
+        })
       : Promise.resolve(),
   ]);
 

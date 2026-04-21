@@ -3,13 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import {
-  sendSms,
-  smsDriverApproved,
-  smsDriverRejected,
-  smsDriverSuspended,
-  smsDriverReactivated,
-} from "@/lib/twilio";
+import { sendSmsTpl } from "@/lib/twilio";
 
 async function assertAdmin() {
   const supabase = await createClient();
@@ -34,7 +28,7 @@ export async function approveDriverAction(fd: FormData) {
     .eq("id", id);
 
   if (driver?.phone) {
-    await sendSms(driver.phone, smsDriverApproved(driver.full_name));
+    await sendSmsTpl(driver.phone, "driver_approved", { fullName: driver.full_name });
   }
 
   redirect(`/admin/dashboard/drivers/${id}?flash=approved`);
@@ -65,7 +59,7 @@ export async function rejectDriverAction(fd: FormData) {
     .eq("id", id);
 
   if (driver?.phone) {
-    await sendSms(driver.phone, smsDriverRejected(driver.full_name, reason));
+    await sendSmsTpl(driver.phone, "driver_rejected", { fullName: driver.full_name, reason });
   }
 
   redirect(`/admin/dashboard/drivers/${id}?flash=rejected`);
@@ -88,7 +82,7 @@ export async function suspendDriverAction(fd: FormData) {
     .eq("id", id);
 
   if (driver?.phone) {
-    await sendSms(driver.phone, smsDriverSuspended(driver.full_name));
+    await sendSmsTpl(driver.phone, "driver_suspended", { fullName: driver.full_name });
   }
 
   redirect(`/admin/dashboard/drivers/${id}?flash=suspended`);
@@ -111,7 +105,7 @@ export async function reactivateDriverAction(fd: FormData) {
     .eq("id", id);
 
   if (driver?.phone) {
-    await sendSms(driver.phone, smsDriverReactivated(driver.full_name));
+    await sendSmsTpl(driver.phone, "driver_reactivated", { fullName: driver.full_name });
   }
 
   redirect(`/admin/dashboard/drivers/${id}?flash=reactivated`);

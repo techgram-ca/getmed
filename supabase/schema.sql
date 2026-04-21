@@ -610,3 +610,8 @@ create policy "driver_assigned_orders_update" on public.orders
       select id from public.drivers where user_id = auth.uid()
     )
   );
+
+-- Seed: SMS enabled default (off until admin enables it)
+insert into public.app_settings (key, value)
+values ('sms_enabled', 'false')
+on conflict (key) do nothing;
