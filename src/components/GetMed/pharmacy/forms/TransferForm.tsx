@@ -1,13 +1,67 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { useRef, useState, useTransition } from "react";
+import { CheckCircle2, Upload, X } from "lucide-react";
 import { submitOrderAction } from "@/app/(getmed)/[slug]/actions";
 
 interface Props {
   pharmacyId: string;
   defaultAddress: string | null;
   hasDelivery: boolean;
+}
+
+function FileUploadArea({
+  label,
+  files,
+  onAdd,
+  onRemove,
+  inputRef,
+}: {
+  label: string;
+  files: File[];
+  onAdd: (added: File[]) => void;
+  onRemove: (index: number) => void;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-semibold text-[#0d1f1c] mb-1.5">
+        {label}{" "}
+        <span className="text-[#9bbab7] font-normal text-xs">(optional)</span>
+      </label>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*,application/pdf"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          onAdd(Array.from(e.target.files ?? []));
+          e.target.value = "";
+        }}
+      />
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-[#e2efed] text-sm text-[#6b8280] hover:border-[#2a9d8f] hover:text-[#2a9d8f] transition-colors"
+      >
+        <Upload className="w-4 h-4" />
+        Click to upload
+      </button>
+      {files.length > 0 && (
+        <ul className="mt-2 space-y-1.5">
+          {files.map((f, i) => (
+            <li key={i} className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-[#f0fbf9] border border-[#e2efed]">
+              <span className="text-xs text-[#0d1f1c] truncate">{f.name}</span>
+              <button type="button" onClick={() => onRemove(i)} className="shrink-0 text-[#6b8280] hover:text-red-500 transition-colors">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 export default function TransferForm({ pharmacyId, defaultAddress, hasDelivery }: Props) {
@@ -17,18 +71,27 @@ export default function TransferForm({ pharmacyId, defaultAddress, hasDelivery }
   const [delivery, setDelivery]    = useState<"pickup" | "delivery">(
     hasDelivery ? "delivery" : "pickup"
   );
+  const [rxFiles, setRxFiles]   = useState<File[]>([]);
+  const [insFiles, setInsFiles] = useState<File[]>([]);
+  const rxRef                   = useRef<HTMLInputElement>(null);
+  const insRef                  = useRef<HTMLInputElement>(null);
+  const formRef                 = useRef<HTMLFormElement>(null);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     const fd = new FormData(e.currentTarget);
+    rxFiles.forEach((f)  => fd.append("prescriptionFiles", f));
+    insFiles.forEach((f) => fd.append("insuranceFiles", f));
     startTransition(async () => {
       const res = await submitOrderAction(fd);
       if (res.error) {
         setError(res.error);
       } else {
         setSuccess(true);
-        (e.target as HTMLFormElement).reset();
+        setRxFiles([]);
+        setInsFiles([]);
+        formRef.current?.reset();
       }
     });
   }
@@ -54,9 +117,9 @@ export default function TransferForm({ pharmacyId, defaultAddress, hasDelivery }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-7">
-      <input type="hidden" name="pharmacyId"  value={pharmacyId} />
-      <input type="hidden" name="orderType"   value="transfer" />
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-7">
+      <input type="hidden" name="pharmacyId"   value={pharmacyId} />
+      <input type="hidden" name="orderType"    value="transfer" />
       <input type="hidden" name="deliveryType" value={delivery} />
 
       {/* Patient Info */}
@@ -146,6 +209,40 @@ export default function TransferForm({ pharmacyId, defaultAddress, hasDelivery }
               className="w-full px-3.5 py-2.5 rounded-xl border border-[#e2efed] text-sm focus:outline-none focus:ring-2 focus:ring-[#2a9d8f]/30 focus:border-[#2a9d8f] transition-colors"
             />
           </div>
+        </div>
+      </section>
+
+      {/* Optional health card + files */}
+      <section>
+        <h4 className="text-[0.65rem] font-bold uppercase tracking-wider text-[#6b8280] mb-3">
+          Health Card &amp; Documents
+        </h4>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-[#0d1f1c] mb-1.5">
+              Health Card Number <span className="text-[#9bbab7] font-normal text-xs">(optional)</span>
+            </label>
+            <input
+              type="text" name="healthCardNumber" placeholder="1234-567-890 AB"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#e2efed] text-sm focus:outline-none focus:ring-2 focus:ring-[#2a9d8f]/30 focus:border-[#2a9d8f] transition-colors"
+            />
+          </div>
+
+          <FileUploadArea
+            label="Prescription Upload"
+            files={rxFiles}
+            onAdd={(added) => setRxFiles((prev) => [...prev, ...added])}
+            onRemove={(i) => setRxFiles((prev) => prev.filter((_, j) => j !== i))}
+            inputRef={rxRef}
+          />
+
+          <FileUploadArea
+            label="Insurance Upload"
+            files={insFiles}
+            onAdd={(added) => setInsFiles((prev) => [...prev, ...added])}
+            onRemove={(i) => setInsFiles((prev) => prev.filter((_, j) => j !== i))}
+            inputRef={insRef}
+          />
         </div>
       </section>
 

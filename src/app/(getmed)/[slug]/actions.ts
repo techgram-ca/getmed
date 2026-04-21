@@ -2,29 +2,6 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 
-function toSlug(displayName: string, city: string) {
-  return `${displayName}-${city}`
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
-}
-
-async function uniqueSlug(supabase: ReturnType<typeof createAdminClient>, base: string) {
-  let slug = base;
-  let attempt = 2;
-  for (;;) {
-    const { data } = await supabase
-      .from("pharmacies")
-      .select("id")
-      .eq("url_slug", slug)
-      .maybeSingle();
-    if (!data) return slug;
-    slug = `${base}-${attempt++}`;
-  }
-}
-
 export async function submitOrderAction(
   fd: FormData
 ): Promise<{ error: string | null }> {
@@ -37,46 +14,70 @@ export async function submitOrderAction(
   const deliveryType = fd.get("deliveryType")  as string;
   const address      = fd.get("address")       as string | null;
 
+  async function uploadFiles(files: File[], prefix: string): Promise<string[]> {
+    const paths: string[] = [];
+    for (const file of files) {
+      if (!file || file.size === 0) continue;
+      const ext  = file.name.split(".").pop() ?? "jpg";
+      const path = `${pharmacyId}/${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: uploadErr } = await admin.storage
+        .from("prescription-uploads")
+        .upload(path, await file.arrayBuffer(), { contentType: file.type });
+      if (!uploadErr) paths.push(path);
+    }
+    return paths;
+  }
+
   // Order-type specific details
   let details: Record<string, unknown> = {};
+  let prescriptionFilePaths: string[] = [];
+  let insuranceFilePaths: string[]    = [];
+
   if (orderType === "prescription") {
+    const rxFiles  = fd.getAll("prescriptionFiles") as File[];
+    const insFiles = fd.getAll("insuranceFiles")    as File[];
+    prescriptionFilePaths = await uploadFiles(rxFiles,  "rx");
+    insuranceFilePaths    = await uploadFiles(insFiles, "ins");
+
     details = {
-      healthCardNumber:     fd.get("healthCardNumber"),
-      deliveryInstructions: fd.get("deliveryInstructions"),
-      consent:              fd.get("consent") === "on",
+      healthCardNumber:      fd.get("healthCardNumber"),
+      deliveryInstructions:  fd.get("deliveryInstructions"),
+      consent:               fd.get("consent") === "on",
+      prescriptionFilePaths,
+      insuranceFilePaths,
     };
   } else if (orderType === "transfer") {
+    const rxFiles  = fd.getAll("prescriptionFiles") as File[];
+    const insFiles = fd.getAll("insuranceFiles")    as File[];
+    prescriptionFilePaths = await uploadFiles(rxFiles,  "rx");
+    insuranceFilePaths    = await uploadFiles(insFiles, "ins");
+
     details = {
       currentPharmacyName:  fd.get("currentPharmacyName"),
       currentPharmacyPhone: fd.get("currentPharmacyPhone"),
       rxNumber:             fd.get("rxNumber"),
       medicationName:       fd.get("medicationName"),
       doctorName:           fd.get("doctorName"),
+      healthCardNumber:     fd.get("healthCardNumber") || null,
       consent:              fd.get("consent") === "on",
       notes:                fd.get("notes"),
+      prescriptionFilePaths,
+      insuranceFilePaths,
     };
   } else if (orderType === "otc") {
+    const rawFiles = fd.getAll("files") as File[];
+    prescriptionFilePaths = await uploadFiles(rawFiles, "otc");
+
     details = {
-      productName:      fd.get("productName"),
-      quantity:         fd.get("quantity"),
-      brandPreference:  fd.get("brandPreference"),
-      symptoms:         fd.get("symptoms"),
-      notes:            fd.get("notes"),
+      productName:     fd.get("productName"),
+      quantity:        fd.get("quantity"),
+      brandPreference: fd.get("brandPreference"),
+      symptoms:        fd.get("symptoms"),
+      notes:           fd.get("notes"),
     };
   }
 
-  // Upload all files to prescription-uploads bucket
-  const fileUrls: string[] = [];
-  const files = fd.getAll("files") as File[];
-  for (const file of files) {
-    if (!file || file.size === 0) continue;
-    const ext  = file.name.split(".").pop() ?? "jpg";
-    const path = `${pharmacyId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error: uploadErr } = await admin.storage
-      .from("prescription-uploads")
-      .upload(path, await file.arrayBuffer(), { contentType: file.type });
-    if (!uploadErr) fileUrls.push(path);
-  }
+  const allFilePaths = [...prescriptionFilePaths, ...insuranceFilePaths];
 
   const { error } = await admin.from("orders").insert({
     pharmacy_id:   pharmacyId,
@@ -87,10 +88,9 @@ export async function submitOrderAction(
     delivery_type: deliveryType,
     address:       deliveryType === "delivery" ? (address || null) : null,
     details,
-    file_urls:     fileUrls,
+    file_urls:     allFilePaths,
   });
 
   if (error) return { error: error.message };
   return { error: null };
 }
-
