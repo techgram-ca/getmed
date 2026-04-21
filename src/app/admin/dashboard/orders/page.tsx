@@ -14,25 +14,11 @@ export default async function AdminOrdersPage() {
 
   const admin = createAdminClient();
 
-  // Try to load orders with assigned_driver_id (requires migration).
-  // Fall back gracefully if the column doesn't exist yet.
-  let ordersRaw: { id: string; order_type: string; patient_name: string; patient_phone: string; delivery_type: string; address: string | null; status: string; pharmacy_id: string; assigned_driver_id: string | null; created_at: string }[] = [];
-
-  const { data: ordersWithDriver, error: driverColError } = await admin
+  // Load ALL orders at once — filtering is done client-side
+  const { data: ordersRaw } = await admin
     .from("orders")
     .select("id, order_type, patient_name, patient_phone, delivery_type, address, status, pharmacy_id, assigned_driver_id, created_at")
     .order("created_at", { ascending: false });
-
-  if (!driverColError && ordersWithDriver) {
-    ordersRaw = ordersWithDriver;
-  } else {
-    // Column not yet migrated — fetch without it
-    const { data: ordersBasic } = await admin
-      .from("orders")
-      .select("id, order_type, patient_name, patient_phone, delivery_type, address, status, pharmacy_id, created_at")
-      .order("created_at", { ascending: false });
-    ordersRaw = (ordersBasic ?? []).map((o) => ({ ...o, assigned_driver_id: null }));
-  }
 
   // All approved pharmacies for filter dropdown + name lookup
   const { data: pharmacies } = await admin
