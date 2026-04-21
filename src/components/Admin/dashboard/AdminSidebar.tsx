@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Package,
   Settings,
   ShieldCheck,
   X,
@@ -18,6 +19,7 @@ import { adminLogoutAction } from "@/app/admin/login/actions";
 const NAV = [
   { href: "/admin/dashboard",            icon: LayoutDashboard, label: "Overview"   },
   { href: "/admin/dashboard/pharmacies", icon: Building2,       label: "Pharmacies" },
+  { href: "/admin/dashboard/orders",     icon: Package,         label: "Orders"     },
   { href: "/admin/dashboard/settings",   icon: Settings,        label: "Settings"   },
 ];
 

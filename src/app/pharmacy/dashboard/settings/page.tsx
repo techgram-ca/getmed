@@ -18,12 +18,14 @@ export default async function PharmacySettingsPage() {
   const { data: pharmacy, error } = await supabase
     .from("pharmacies")
     .select(
-      "id, display_name, contact_name, email, phone, legal_name, full_address, city, province, postal_code, license_number, service_online_orders, service_delivery, service_consultation, payment_methods, status"
+      "id, display_name, contact_name, phone, legal_name, full_address, city, province, postal_code, license_number, service_online_orders, service_delivery, service_consultation, payment_methods, status"
     )
     .eq("user_id", user.id)
     .single();
 
   if (error || !pharmacy) redirect("/pharmacy/login");
+
+  const pharmacyEmail = user.email ?? null;
 
   return (
     <div className="flex min-h-screen bg-[#f8fffe]">
@@ -46,7 +48,7 @@ export default async function PharmacySettingsPage() {
               </div>
               <div>
                 <dt className="text-[#6b8280]">Email</dt>
-                <dd className="font-semibold text-[#0d1f1c]">{pharmacy.email ?? user.email}</dd>
+                <dd className="font-semibold text-[#0d1f1c]">{pharmacyEmail ?? "—"}</dd>
               </div>
               <div>
                 <dt className="text-[#6b8280]">License Number</dt>
