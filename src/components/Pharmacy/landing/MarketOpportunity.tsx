@@ -14,7 +14,7 @@ const STATS = [
     icon: "📱",
   },
   {
-    value: "3×",
+    value: "4×",
     label: "growth in online prescription demand from 2020 to 2026",
     sub: "Platforms like PocketPills and Pillway captured millions of patients",
     icon: "🚀",
