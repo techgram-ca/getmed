@@ -18,17 +18,17 @@ const WHY = [
   {
     icon: ScrollText,
     title: "No Contracts",
-    desc: "Month-to-month only. There is no long-term commitment, no cancellation penalties, and no lock-in period. Leave whenever you want.",
+    desc: "No long-term commitment, no cancellation penalties, and no lock-in period. Leave whenever you want.",
   },
   {
     icon: Percent,
     title: "Zero Commission",
-    desc: "We do not take a cut of your prescription revenue. You keep 100% of every sale — we only charge a small delivery fee paid by the patient.",
+    desc: "We do not take a cut of your prescription revenue. You keep 100% of every sale — we only charge a small delivery fee.",
   },
   {
     icon: Truck,
     title: "Lowest Delivery Charges",
-    desc: "Our driver network operates at volume, letting us offer the most competitive delivery rates in the market. Patients pay less, which means more orders for you.",
+    desc: "Our driver network operates at volume, letting us offer the most competitive delivery rates in the market. You pay less, which means more revenue.",
   },
   {
     icon: Clock,

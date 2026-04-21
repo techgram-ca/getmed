@@ -2,30 +2,30 @@ import ScrollReveal from "./ScrollReveal";
 
 const STATS = [
   {
-    value: "$4.2B",
-    label: "Canadian online pharmacy market size projected by 2027",
+    value: "$6.1B",
+    label: "Canadian online pharmacy market size projected by 2029",
     sub: "Growing at 14.8% CAGR — one of the fastest expanding healthcare verticals",
     icon: "📈",
   },
   {
     value: "68%",
     label: "of Canadian patients now prefer digital-first pharmacy services",
-    sub: "Post-pandemic behaviour shift: convenience is no longer optional",
+    sub: "The convenience shift is permanent — patients expect digital options",
     icon: "📱",
   },
   {
     value: "3×",
-    label: "growth in online prescription demand from 2020 to 2024",
+    label: "growth in online prescription demand from 2020 to 2026",
     sub: "Platforms like PocketPills and Pillway captured millions of patients",
     icon: "🚀",
   },
 ];
 
 const FACTS = [
-  "Online pharmacies processed over 12 million prescriptions in Canada in 2023",
+  "Online pharmacies processed over 18 million prescriptions in Canada in 2025",
   "40% of patients aged 25–54 have switched to digital pharmacy services",
   "Independent pharmacies account for only 8% of online pharmacy revenue",
-  "By 2026, 1 in 3 prescriptions in Canada will be fulfilled digitally",
+  "Today, 1 in 3 prescriptions in Canada is fulfilled digitally",
 ];
 
 export default function MarketOpportunity() {

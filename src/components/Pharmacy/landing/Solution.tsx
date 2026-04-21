@@ -4,7 +4,7 @@ import ScrollReveal from "./ScrollReveal";
 
 const FEATURES = [
   "We onboard your pharmacy profile in under 24 hours",
-  "Instant online prescription ordering system — no coding required",
+  "Instant online prescription ordering system — no setup required",
   "GetMed manages all delivery logistics with our driver network",
   "Clean dashboard to accept, track, and manage every order",
   "Automatic patient notifications for order status",

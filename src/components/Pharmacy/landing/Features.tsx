@@ -12,7 +12,7 @@ const FEATURES = [
   {
     icon: PackageCheck,
     title: "Online Prescription Ordering",
-    desc: "Patients upload their prescriptions and place orders directly through GetMed. Every order lands in your dashboard — reviewed, confirmed, and ready to fill.",
+    desc: "Patients upload their prescriptions and place orders directly through GetMed. Every order lands in your dashboard — you contact the patient, verify the prescription, and stay in full control.",
   },
   {
     icon: Truck,
