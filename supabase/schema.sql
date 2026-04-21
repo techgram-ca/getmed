@@ -397,6 +397,53 @@ create policy "prescription_uploads_pharmacy_read" on storage.objects
 --   );
 
 -- ============================================================
+-- MIGRATION: Add consultations table
+-- Run this block in Supabase → SQL Editor
+-- ============================================================
+
+create table if not exists public.consultations (
+  id              uuid primary key default gen_random_uuid(),
+  pharmacy_id     uuid references public.pharmacies(id) on delete cascade not null,
+
+  patient_name    text not null,
+  patient_phone   text not null,
+  patient_email   text,
+
+  condition       text,
+  notes           text,
+
+  status          text not null default 'pending'
+                    check (status in ('pending', 'in_progress', 'completed', 'cancelled')),
+
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+
+create trigger consultations_set_updated_at
+  before update on public.consultations
+  for each row execute function public.set_updated_at();
+
+alter table public.consultations enable row level security;
+
+create policy "consultations_pharmacy_select" on public.consultations
+  for select to authenticated
+  using (exists (
+    select 1 from public.pharmacies
+    where id = pharmacy_id and user_id = auth.uid()
+  ));
+
+create policy "consultations_pharmacy_update" on public.consultations
+  for update to authenticated
+  using (exists (
+    select 1 from public.pharmacies
+    where id = pharmacy_id and user_id = auth.uid()
+  ));
+
+create index if not exists consultations_pharmacy_id_idx  on public.consultations(pharmacy_id);
+create index if not exists consultations_status_idx        on public.consultations(status);
+create index if not exists consultations_created_at_idx   on public.consultations(created_at desc);
+
+-- ============================================================
 -- MIGRATION: Add logo_url to existing pharmacies table
 -- Run this block ONLY if the table already exists (skip if
 -- running the full schema above for the first time).
