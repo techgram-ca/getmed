@@ -15,14 +15,18 @@ export default function Footer() {
         </Link>
 
         <ul className="flex gap-6 list-none">
-          {["Privacy", "Terms", "Support"].map((label) => (
+          {[
+            { label: "Privacy", href: "/privacy" },
+            { label: "Terms", href: "/terms" },
+            { label: "Support", href: "/support" },
+          ].map(({ label, href }) => (
             <li key={label}>
-              <a
-                href="#"
+              <Link
+                href={href}
                 className="text-sm text-[#6b8280] hover:text-[#0d1f1c] transition-colors no-underline"
               >
                 {label}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>
