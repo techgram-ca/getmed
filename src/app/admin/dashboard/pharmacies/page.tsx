@@ -24,6 +24,17 @@ function str(v: string | string[] | undefined) {
   return (Array.isArray(v) ? v[0] : v) ?? "";
 }
 
+function safeLower(value: unknown) {
+  return typeof value === "string" ? value.toLowerCase() : "";
+}
+
+function formatCreatedAt(value: unknown) {
+  if (typeof value !== "string") return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" });
+}
+
 function isOpenNow(hours: Record<string, { open: boolean; openTime: string; closeTime: string }> | null): boolean {
   if (!hours) return false;
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -60,7 +71,7 @@ export default async function AdminPharmaciesPage({ searchParams }: { searchPara
 
   // Client-side filters (city + open/closed)
   if (cityFilter) {
-    pharmacies = pharmacies.filter((p) => p.city.toLowerCase().includes(cityFilter));
+    pharmacies = pharmacies.filter((p) => safeLower(p.city).includes(cityFilter));
   }
   if (openFilter === "open") {
     pharmacies = pharmacies.filter((p) => isOpenNow(p.opening_hours));
@@ -73,7 +84,7 @@ export default async function AdminPharmaciesPage({ searchParams }: { searchPara
     .from("pharmacies")
     .select("city")
     .order("city");
-  const cities = [...new Set((allCities ?? []).map((r) => r.city))].sort();
+  const cities = [...new Set((allCities ?? []).map((r) => r.city).filter((city): city is string => typeof city === "string" && city.length > 0))].sort();
 
   // Status counts
   const { data: allStatuses } = await admin.from("pharmacies").select("status");
@@ -127,7 +138,6 @@ export default async function AdminPharmaciesPage({ searchParams }: { searchPara
               <select
                 name="city"
                 defaultValue={cityFilter}
-                onChange={(e) => (e.target.form as HTMLFormElement).submit()}
                 className="px-3 py-2 rounded-xl border border-[#e2efed] text-xs text-[#0d1f1c] bg-white focus:outline-none focus:ring-2 focus:ring-[#2a9d8f]/30 focus:border-[#2a9d8f] transition-colors"
               >
                 <option value="">All Cities</option>
@@ -135,9 +145,7 @@ export default async function AdminPharmaciesPage({ searchParams }: { searchPara
                   <option key={c} value={c.toLowerCase()}>{c}</option>
                 ))}
               </select>
-              <noscript>
-                <button type="submit" className="px-3 py-2 rounded-xl bg-[#2a9d8f] text-white text-xs font-bold">Filter</button>
-              </noscript>
+              <button type="submit" className="px-3 py-2 rounded-xl bg-[#2a9d8f] text-white text-xs font-bold">Apply</button>
             </form>
 
             {/* Open/Closed filter */}
@@ -184,6 +192,14 @@ export default async function AdminPharmaciesPage({ searchParams }: { searchPara
                 {pharmacies.map((ph) => {
                   const s    = STATUS_STYLES[ph.status] ?? STATUS_STYLES.pending;
                   const open = isOpenNow(ph.opening_hours);
+                  const displayName = typeof ph.display_name === "string" && ph.display_name.length > 0
+                    ? ph.display_name
+                    : (typeof ph.legal_name === "string" && ph.legal_name.length > 0 ? ph.legal_name : "Unnamed Pharmacy");
+                  const legalName = typeof ph.legal_name === "string" && ph.legal_name.length > 0 ? ph.legal_name : "—";
+                  const city = typeof ph.city === "string" && ph.city.length > 0 ? ph.city : "—";
+                  const province = typeof ph.province === "string" && ph.province.length > 0 ? ph.province : "—";
+                  const contactName = typeof ph.contact_name === "string" && ph.contact_name.length > 0 ? ph.contact_name : "No contact";
+                  const phone = typeof ph.phone === "string" && ph.phone.length > 0 ? ph.phone : "—";
                   return (
                     <Link
                       key={ph.id}
@@ -195,23 +211,23 @@ export default async function AdminPharmaciesPage({ searchParams }: { searchPara
                           <img src={ph.logo_url} alt="" className="w-full h-full object-cover" />
                         ) : (
                           <span className="text-[0.7rem] font-extrabold text-[#2a9d8f]">
-                            {ph.display_name.slice(0, 2).toUpperCase()}
+                            {displayName.slice(0, 2).toUpperCase()}
                           </span>
                         )}
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-[#0d1f1c] truncate group-hover:text-[#2a9d8f] transition-colors">
-                          {ph.display_name}
+                          {displayName}
                         </p>
                         <p className="text-xs text-[#6b8280] truncate">
-                          {ph.legal_name} · {ph.city}, {ph.province}
+                          {legalName} · {city}, {province}
                         </p>
                       </div>
 
                       <div className="hidden md:block min-w-0 w-36">
-                        <p className="text-xs text-[#0d1f1c] font-medium truncate">{ph.contact_name}</p>
-                        <p className="text-xs text-[#6b8280]">{ph.phone}</p>
+                        <p className="text-xs text-[#0d1f1c] font-medium truncate">{contactName}</p>
+                        <p className="text-xs text-[#6b8280]">{phone}</p>
                       </div>
 
                       <div className="hidden sm:flex items-center gap-1">
@@ -233,7 +249,7 @@ export default async function AdminPharmaciesPage({ searchParams }: { searchPara
                       </div>
 
                       <div className="hidden sm:block text-xs text-[#6b8280] w-20 text-right shrink-0">
-                        {new Date(ph.created_at).toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" })}
+                        {formatCreatedAt(ph.created_at)}
                       </div>
 
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.65rem] font-bold shrink-0 ${s.badge}`}>
