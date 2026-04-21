@@ -1,13 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { useActionState } from "react";
 import Link from "next/link";
-import { AlertCircle, HeartPulse, Loader2, Lock, Mail } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, HeartPulse, Loader2, Lock, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { loginAction } from "@/app/pharmacy/login/actions";
 
 export default function LoginForm() {
   const [state, action, pending] = useActionState(loginAction, { error: null });
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#f0faf8] flex items-center justify-center px-4 py-12">
@@ -87,19 +89,28 @@ export default function LoginForm() {
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   required
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#e2efed] bg-[#f8fffe] text-sm text-[#0d1f1c] placeholder:text-[#a0b5b2] focus:outline-none focus:ring-2 focus:ring-[#2a9d8f]/40 focus:border-[#2a9d8f] transition"
+                  className="w-full pl-10 pr-11 py-3 rounded-xl border border-[#e2efed] bg-[#f8fffe] text-sm text-[#0d1f1c] placeholder:text-[#a0b5b2] focus:outline-none focus:ring-2 focus:ring-[#2a9d8f]/40 focus:border-[#2a9d8f] transition"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  tabIndex={-1}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6b8280] hover:text-[#0d1f1c] transition-colors cursor-pointer"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
             <Button
               type="submit"
               disabled={pending}
-              className="w-full py-3 text-sm font-bold"
+              className="w-full py-3 text-sm font-bold cursor-pointer"
             >
               {pending ? (
                 <>

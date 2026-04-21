@@ -58,7 +58,7 @@ export default function Sidebar({ pharmacyName, status }: Props) {
 
   const logo = (
     <div className="px-4 py-5 border-b border-[#e2efed]">
-      <Link href="/" className="flex items-center gap-2.5 no-underline mb-3">
+      <Link href="/pharmacy/dashboard" className="flex items-center gap-2.5 no-underline mb-3">
         <div className="w-8 h-8 rounded-[9px] bg-[#2a9d8f] flex items-center justify-center">
           <HeartPulse className="w-4 h-4 text-white" />
         </div>
@@ -119,7 +119,7 @@ export default function Sidebar({ pharmacyName, status }: Props) {
 
       {/* Mobile top bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-[#e2efed] h-14 flex items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2 no-underline">
+        <Link href="/pharmacy/dashboard" className="flex items-center gap-2 no-underline">
           <div className="w-7 h-7 rounded-[8px] bg-[#2a9d8f] flex items-center justify-center">
             <HeartPulse className="w-3.5 h-3.5 text-white" />
           </div>

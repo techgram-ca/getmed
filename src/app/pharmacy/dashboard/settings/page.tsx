@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Sidebar from "@/components/Pharmacy/dashboard/Sidebar";
 import PharmacyDetailsForm from "@/components/Pharmacy/dashboard/settings/PharmacyDetailsForm";
+import PharmacistDetailsForm from "@/components/Pharmacy/dashboard/settings/PharmacistDetailsForm";
 import PasswordChangeForm from "@/components/Pharmacy/dashboard/settings/PasswordChangeForm";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = {
   title: "Settings — GetMed Pharmacy Portal",
@@ -11,6 +13,7 @@ export const metadata: Metadata = {
 
 export default async function PharmacySettingsPage() {
   const supabase = await createClient();
+  const admin    = createAdminClient();
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/pharmacy/login");
@@ -18,12 +21,18 @@ export default async function PharmacySettingsPage() {
   const { data: pharmacy, error } = await supabase
     .from("pharmacies")
     .select(
-      "id, display_name, contact_name, phone, legal_name, full_address, city, province, postal_code, license_number, service_online_orders, service_delivery, service_consultation, payment_methods, status"
+      "id, display_name, contact_name, phone, legal_name, full_address, city, province, postal_code, license_number, logo_url, service_online_orders, service_delivery, service_consultation, payment_methods, status"
     )
     .eq("user_id", user.id)
     .single();
 
   if (error || !pharmacy) redirect("/pharmacy/login");
+
+  const { data: pharmacist } = await admin
+    .from("pharmacist_profiles")
+    .select("*")
+    .eq("pharmacy_id", pharmacy.id)
+    .maybeSingle();
 
   const pharmacyEmail = user.email ?? null;
 
@@ -65,10 +74,16 @@ export default async function PharmacySettingsPage() {
             </dl>
 
             <div className="border-t border-[#e2efed] pt-5">
-              <h3 className="text-sm font-bold text-[#0d1f1c] mb-4">Edit Details</h3>
               <PharmacyDetailsForm pharmacy={pharmacy} />
             </div>
           </section>
+
+          {/* Pharmacist profile (only for consultation-enabled pharmacies) */}
+          {pharmacy.service_consultation && (
+            <section className="bg-white rounded-2xl border border-[#e2efed] shadow-sm p-5 mb-6">
+              <PharmacistDetailsForm pharmacist={pharmacist ?? null} />
+            </section>
+          )}
 
           {/* Password change */}
           <section className="bg-white rounded-2xl border border-[#e2efed] shadow-sm p-5">

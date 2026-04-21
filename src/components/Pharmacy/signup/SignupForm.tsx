@@ -138,9 +138,9 @@ export default function SignupForm() {
 
           <span className="text-xs text-[#6b8280]">
             Already registered?{" "}
-            <a href="#" className="text-[#2a9d8f] font-semibold hover:underline">
+            <Link href="/pharmacy/login" className="text-[#2a9d8f] font-semibold hover:underline no-underline">
               Sign in
-            </a>
+            </Link>
           </span>
         </div>
       </header>
