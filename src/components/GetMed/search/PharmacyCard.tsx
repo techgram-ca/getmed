@@ -1,4 +1,4 @@
-import { Clock, MapPin, Phone, ShoppingBag, Stethoscope, Truck } from "lucide-react";
+import { MapPin, Phone, ShoppingBag, Stethoscope, Truck } from "lucide-react";
 
 export interface SearchPharmacy {
   id: string;
@@ -121,7 +121,7 @@ export default function PharmacyCard({ pharmacy: ph, index, isActive, onMouseEnt
       </div>
 
       {/* CTA buttons */}
-      <div className="flex gap-2 mt-3">
+      <div className="mt-3">
         <a
           href={(() => {
             const slug = ph.url_slug ?? ph.id;
@@ -132,17 +132,10 @@ export default function PharmacyCard({ pharmacy: ph, index, isActive, onMouseEnt
             const qs = p.toString();
             return `/${slug}${qs ? `?${qs}` : ""}`;
           })()}
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#2a9d8f] text-white text-xs font-bold hover:bg-[#21867a] transition-colors no-underline"
+          className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#2a9d8f] text-white text-xs font-bold hover:bg-[#21867a] transition-colors no-underline"
         >
           <ShoppingBag className="w-3.5 h-3.5" />
           Order Now
-        </a>
-        <a
-          href={`tel:${ph.phone}`}
-          className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-[#e2efed] text-[#6b8280] text-xs font-semibold hover:bg-[#f0fbf9] hover:text-[#2a9d8f] hover:border-[#2a9d8f] transition-colors no-underline"
-        >
-          <Phone className="w-3.5 h-3.5" />
-          Call
         </a>
       </div>
     </div>

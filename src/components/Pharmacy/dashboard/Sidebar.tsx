@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  MessageSquare,
   PackageCheck,
   Settings,
   Stethoscope,
@@ -18,12 +17,11 @@ import {
 import { logoutAction } from "@/app/pharmacy/dashboard/actions";
 
 const NAV = [
-  { href: "/pharmacy/dashboard",              icon: LayoutDashboard, label: "Overview"      },
-  { href: "/pharmacy/dashboard/orders",       icon: PackageCheck,    label: "Orders"        },
-  { href: "/pharmacy/dashboard/patients",     icon: Users,           label: "Patients"      },
-  { href: "/pharmacy/dashboard/messages",     icon: MessageSquare,   label: "Messages"      },
-  { href: "/pharmacy/dashboard/consultations",icon: Stethoscope,     label: "Consultations" },
-  { href: "/pharmacy/dashboard/settings",     icon: Settings,        label: "Settings"      },
+  { href: "/pharmacy/dashboard",               icon: LayoutDashboard, label: "Overview"      },
+  { href: "/pharmacy/dashboard/orders",        icon: PackageCheck,    label: "Orders"        },
+  { href: "/pharmacy/dashboard/patients",      icon: Users,           label: "Patients"      },
+  { href: "/pharmacy/dashboard/consultations", icon: Stethoscope,     label: "Consultations" },
+  { href: "/pharmacy/dashboard/settings",      icon: Settings,        label: "Settings"      },
 ];
 
 interface Props {

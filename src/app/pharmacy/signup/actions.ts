@@ -140,6 +140,7 @@ export async function pharmacySignupAction(
     .from("pharmacies")
     .insert({
       user_id:              userId,
+      email,
       contact_name:         contact,
       phone,
       legal_name:           pharmacy.legalName,

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
-import PharmacyHeader from "@/components/GetMed/pharmacy/PharmacyHeader";
-import OrderTabs from "@/components/GetMed/pharmacy/OrderTabs";
+import PharmacyLanding from "@/components/GetMed/pharmacy/PharmacyLanding";
 
 type Params      = Promise<{ slug: string }>;
 type SearchParams = Promise<{ address?: string; lat?: string; lng?: string }>;
@@ -38,7 +37,7 @@ export default async function PharmacyPage({
   const { data: pharmacy } = await admin
     .from("pharmacies")
     .select(
-      "id, display_name, logo_url, full_address, city, province, phone, opening_hours, service_online_orders, service_delivery, service_consultation"
+      "id, display_name, logo_url, full_address, city, province, phone, opening_hours, payment_methods, service_online_orders, service_delivery, service_consultation"
     )
     .eq("url_slug", slug)
     .eq("status", "approved")
@@ -46,24 +45,34 @@ export default async function PharmacyPage({
 
   if (!pharmacy) notFound();
 
+  let pharmacist: {
+    full_name: string;
+    photo_url: string | null;
+    qualification: string | null;
+    years_of_experience: number | null;
+    specialization: string[] | null;
+    languages: string[] | null;
+    bio: string | null;
+    consultation_modes: string[] | null;
+    consultation_fee: number | null;
+  } | null = null;
+
+  if (pharmacy.service_consultation) {
+    const { data } = await admin
+      .from("pharmacist_profiles")
+      .select(
+        "full_name, photo_url, qualification, years_of_experience, specialization, languages, bio, consultation_modes, consultation_fee"
+      )
+      .eq("pharmacy_id", pharmacy.id)
+      .maybeSingle();
+    pharmacist = data;
+  }
+
   return (
-    <div className="min-h-screen bg-[#f8fffe]">
-      <PharmacyHeader pharmacy={pharmacy} />
-
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h2 className="text-lg font-extrabold text-[#0d1f1c]">Place an Order</h2>
-          <p className="text-sm text-[#6b8280] mt-1">
-            Choose your order type and fill in your details below.
-          </p>
-        </div>
-
-        <OrderTabs
-          pharmacyId={pharmacy.id}
-          address={address ?? null}
-          hasDelivery={pharmacy.service_delivery}
-        />
-      </div>
-    </div>
+    <PharmacyLanding
+      pharmacy={pharmacy}
+      pharmacist={pharmacist}
+      defaultAddress={address ?? null}
+    />
   );
 }

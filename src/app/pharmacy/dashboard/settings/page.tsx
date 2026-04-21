@@ -1,0 +1,80 @@
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import Sidebar from "@/components/Pharmacy/dashboard/Sidebar";
+import PharmacyDetailsForm from "@/components/Pharmacy/dashboard/settings/PharmacyDetailsForm";
+import PasswordChangeForm from "@/components/Pharmacy/dashboard/settings/PasswordChangeForm";
+import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Settings — GetMed Pharmacy Portal",
+};
+
+export default async function PharmacySettingsPage() {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/pharmacy/login");
+
+  const { data: pharmacy, error } = await supabase
+    .from("pharmacies")
+    .select(
+      "id, display_name, contact_name, email, phone, legal_name, full_address, city, province, postal_code, license_number, service_online_orders, service_delivery, service_consultation, payment_methods, status"
+    )
+    .eq("user_id", user.id)
+    .single();
+
+  if (error || !pharmacy) redirect("/pharmacy/login");
+
+  return (
+    <div className="flex min-h-screen bg-[#f8fffe]">
+      <Sidebar pharmacyName={pharmacy.display_name} status={pharmacy.status} />
+
+      <main className="flex-1 lg:pt-0 pt-14">
+        <div className="p-6 lg:p-8 max-w-[900px]">
+          <div className="mb-8">
+            <h1 className="text-[1.5rem] font-extrabold text-[#0d1f1c] tracking-tight">Settings</h1>
+            <p className="text-sm text-[#6b8280] mt-1">Manage your pharmacy profile and account.</p>
+          </div>
+
+          {/* Read-only pharmacy info */}
+          <section className="bg-white rounded-2xl border border-[#e2efed] shadow-sm p-5 mb-6">
+            <h2 className="text-sm font-bold text-[#0d1f1c] mb-4">Pharmacy Information</h2>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-6">
+              <div>
+                <dt className="text-[#6b8280]">Legal Name</dt>
+                <dd className="font-semibold text-[#0d1f1c]">{pharmacy.legal_name}</dd>
+              </div>
+              <div>
+                <dt className="text-[#6b8280]">Email</dt>
+                <dd className="font-semibold text-[#0d1f1c]">{pharmacy.email ?? user.email}</dd>
+              </div>
+              <div>
+                <dt className="text-[#6b8280]">License Number</dt>
+                <dd className="font-semibold text-[#0d1f1c]">{pharmacy.license_number}</dd>
+              </div>
+              <div>
+                <dt className="text-[#6b8280]">Address</dt>
+                <dd className="font-semibold text-[#0d1f1c]">{pharmacy.full_address}</dd>
+              </div>
+              <div>
+                <dt className="text-[#6b8280]">City</dt>
+                <dd className="font-semibold text-[#0d1f1c]">{pharmacy.city}, {pharmacy.province} {pharmacy.postal_code}</dd>
+              </div>
+            </dl>
+
+            <div className="border-t border-[#e2efed] pt-5">
+              <h3 className="text-sm font-bold text-[#0d1f1c] mb-4">Edit Details</h3>
+              <PharmacyDetailsForm pharmacy={pharmacy} />
+            </div>
+          </section>
+
+          {/* Password change */}
+          <section className="bg-white rounded-2xl border border-[#e2efed] shadow-sm p-5">
+            <h2 className="text-sm font-bold text-[#0d1f1c] mb-4">Change Password</h2>
+            <PasswordChangeForm />
+          </section>
+        </div>
+      </main>
+    </div>
+  );
+}
