@@ -19,6 +19,7 @@ create table if not exists public.pharmacies (
   user_id               uuid references auth.users(id) on delete cascade not null unique,
 
   -- Contact
+  email                 text,
   contact_name          text not null,
   phone                 text not null,
 
