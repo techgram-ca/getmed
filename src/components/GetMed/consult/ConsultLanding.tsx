@@ -5,15 +5,19 @@ import { useState } from "react";
 import {
   Activity,
   ArrowRight,
+  Droplets,
   Heart,
   Layers,
   Leaf,
   Microscope,
+  Search,
   Stethoscope,
-  Wind,
+  Thermometer,
 } from "lucide-react";
-import AddressAutocomplete, { PlaceResult } from "@/components/GetMed/AddressAutocomplete";
+import AddressAutocomplete, { type PlaceResult } from "@/components/GetMed/AddressAutocomplete";
 import { Button } from "@/components/ui/button";
+
+const HERO_IMG = "images/hero.png";
 
 const CONDITIONS = [
   {
@@ -33,7 +37,7 @@ const CONDITIONS = [
   {
     Icon: Leaf,
     title: "Allergies",
-    conditions: ["Seasonal allergies"],
+    conditions: ["Seasonal allergies", "Food sensitivities"],
     bg: "#ede9fe",
     iconColor: "#7c3aed",
   },
@@ -47,17 +51,36 @@ const CONDITIONS = [
   {
     Icon: Heart,
     title: "Women's Health",
-    conditions: ["Yeast infections"],
+    conditions: ["Yeast infections", "Menstrual pain"],
     bg: "#fce7f3",
     iconColor: "#be185d",
+  },
+  {
+    Icon: Thermometer,
+    title: "Fever & Respiratory",
+    conditions: ["Common cold symptoms", "Mild fever", "Sore throat"],
+    bg: "#fff7ed",
+    iconColor: "#ea580c",
   },
 ];
 
 export default function ConsultLanding() {
   const router = useRouter();
   const [showAddress, setShowAddress] = useState(false);
+  const [place, setPlace] = useState<PlaceResult | null>(null);
 
-  function handlePlaceSelect(place: PlaceResult) {
+  function handlePlaceSelect(p: PlaceResult) {
+    setPlace(p);
+    router.push(
+      `/consult/nearby?lat=${p.lat}&lng=${p.lng}&address=${encodeURIComponent(p.address)}`
+    );
+  }
+
+  function handleFindPharmacists() {
+    if (!place) {
+      document.getElementById("consult-address")?.focus();
+      return;
+    }
     router.push(
       `/consult/nearby?lat=${place.lat}&lng=${place.lng}&address=${encodeURIComponent(place.address)}`
     );
@@ -65,53 +88,95 @@ export default function ConsultLanding() {
 
   return (
     <>
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-[#e0f5f2] via-[#f0fbf9] to-white pt-28 pb-16 px-6">
-        <div className="max-w-[760px] mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-[#2a9d8f]/10 text-[#2a9d8f] text-xs font-bold px-4 py-1.5 rounded-full mb-5">
-            <Stethoscope className="w-3.5 h-3.5" />
-            Licensed Canadian Pharmacists
-          </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-[#0d1f1c] tracking-tight leading-tight mb-4">
-            Consult a pharmacist —{" "}
-            <span className="text-[#2a9d8f]">from anywhere</span>
-          </h1>
-          <p className="text-[#6b8280] text-lg max-w-lg mx-auto mb-8">
-            Get expert advice, prescriptions, and treatment for common conditions without
-            leaving home.
-          </p>
+      {/* ── Hero: two-column layout ─────────────────────────────── */}
+      <section className="bg-gradient-to-br from-[#e0f5f2] via-[#f0fbf9] to-white">
+        <div className="max-w-[1200px] mx-auto px-6 pt-[120px] pb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-[#6b8280] mb-8">
-            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#2a9d8f]" />No appointment needed</span>
-            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#2a9d8f]" />Quick response</span>
-            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#2a9d8f]" />Covered by most plans</span>
-          </div>
+            {/* Left column */}
+            <div>
+              <div className="inline-flex items-center gap-2 bg-[#2a9d8f]/10 text-[#2a9d8f] text-xs font-bold px-4 py-1.5 rounded-full mb-5">
+                <Stethoscope className="w-3.5 h-3.5" />
+                Licensed Canadian Pharmacists
+              </div>
 
-          {showAddress ? (
-            <div className="max-w-md mx-auto flex flex-col gap-3">
-              <p className="text-sm font-semibold text-[#0d1f1c]">Enter your address to find nearby pharmacists</p>
-              <AddressAutocomplete
-                onPlaceSelect={handlePlaceSelect}
-                placeholder="Enter your address..."
-                className="w-full"
+              <h1 className="text-[clamp(2.2rem,4.5vw,3.4rem)] font-extrabold text-[#0d1f1c] tracking-tight leading-[1.15] mb-4">
+                Consult a pharmacist —{" "}
+                <span className="text-[#2a9d8f]">from anywhere</span>
+              </h1>
+
+              <p className="text-[1.05rem] text-[#6b8280] leading-[1.7] max-w-[480px] mb-6">
+                Get expert advice, prescriptions, and treatment for common conditions
+                without leaving home.
+              </p>
+
+              <div className="flex flex-wrap gap-5 text-sm text-[#6b8280] mb-8">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#2a9d8f]" />
+                  No appointment needed
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#2a9d8f]" />
+                  Quick response
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#2a9d8f]" />
+                  Covered by most plans
+                </span>
+              </div>
+
+              {showAddress ? (
+                <div className="flex flex-wrap gap-3">
+                  <AddressAutocomplete
+                    inputId="consult-address"
+                    onAddressChange={() => setPlace(null)}
+                    onPlaceSelect={handlePlaceSelect}
+                    onEnter={handleFindPharmacists}
+                    placeholder="Enter your address..."
+                    className="flex-1 min-w-[220px]"
+                  />
+                  <Button
+                    size="search"
+                    onClick={handleFindPharmacists}
+                    className="flex items-center gap-2 shrink-0"
+                  >
+                    <Search className="w-4 h-4" />
+                    Find Pharmacists
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-start gap-2">
+                  <Button
+                    size="lg"
+                    onClick={() => setShowAddress(true)}
+                    className="gap-2"
+                  >
+                    Start Consultation
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                  <p className="text-xs text-[#6b8280]">Takes less than 2 minutes</p>
+                </div>
+              )}
+            </div>
+
+            {/* Right column – hero image */}
+            <div className="relative hidden lg:block">
+              <div className="absolute inset-[-12px] bg-[#e0f5f2] rounded-[28px] rotate-3" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={HERO_IMG}
+                alt="Consult a pharmacist"
+                className="relative rounded-2xl w-full object-cover shadow-[0_32px_80px_rgba(42,157,143,0.15)]"
               />
             </div>
-          ) : (
-            <div className="flex flex-col items-center gap-2">
-              <Button size="lg" onClick={() => setShowAddress(true)} className="gap-2">
-                Start Consultation
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-              <p className="text-xs text-[#6b8280]">Takes less than 2 minutes</p>
-            </div>
-          )}
+          </div>
         </div>
       </section>
 
-      {/* Conditions section */}
-      <section className="py-16 px-6 bg-white">
-        <div className="max-w-[1100px] mx-auto">
-          <div className="text-center mb-10">
+      {/* ── Conditions section ──────────────────────────────────── */}
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="text-center mb-12">
             <h2 className="text-3xl font-extrabold text-[#0d1f1c] tracking-tight">
               Conditions pharmacists can treat
             </h2>
@@ -148,7 +213,7 @@ export default function ConsultLanding() {
             ))}
           </div>
 
-          <div className="mt-8 text-center space-y-2">
+          <div className="mt-10 text-center space-y-2">
             <p className="text-sm text-[#6b8280]">
               👉 <span className="font-medium text-[#0d1f1c]">+ Many more minor conditions</span>
             </p>
@@ -157,16 +222,26 @@ export default function ConsultLanding() {
             </p>
           </div>
 
-          {/* CTA repeat */}
+          {/* Bottom CTA */}
           <div className="mt-10 flex flex-col items-center gap-3">
             {showAddress ? (
-              <div className="max-w-md w-full flex flex-col gap-3">
-                <p className="text-sm font-semibold text-[#0d1f1c] text-center">Enter your address to find nearby pharmacists</p>
+              <div className="flex flex-wrap gap-3 w-full max-w-xl justify-center">
                 <AddressAutocomplete
+                  inputId="consult-address-bottom"
+                  onAddressChange={() => setPlace(null)}
                   onPlaceSelect={handlePlaceSelect}
+                  onEnter={handleFindPharmacists}
                   placeholder="Enter your address..."
-                  className="w-full"
+                  className="flex-1 min-w-[220px]"
                 />
+                <Button
+                  size="search"
+                  onClick={handleFindPharmacists}
+                  className="flex items-center gap-2 shrink-0"
+                >
+                  <Search className="w-4 h-4" />
+                  Find Pharmacists
+                </Button>
               </div>
             ) : (
               <>
