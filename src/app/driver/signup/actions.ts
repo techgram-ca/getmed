@@ -1,6 +1,11 @@
 "use server";
 
 import { createClient } from "@supabase/supabase-js";
+import {
+  sendSms,
+  smsDriverSignupConfirmation,
+  smsDriverSignupAdmin,
+} from "@/lib/twilio";
 
 function adminClient() {
   return createClient(
@@ -143,6 +148,18 @@ export async function driverSignupAction(
     await supabase.auth.admin.deleteUser(userId);
     return { error: `Failed to save driver details: ${dbError.message}` };
   }
+
+  // ── SMS notifications (non-fatal) ────────────────────────────
+  const adminPhone = process.env.ADMIN_PHONE_NUMBER;
+  await Promise.all([
+    sendSms(phone, smsDriverSignupConfirmation(fullName)),
+    adminPhone
+      ? sendSms(
+          adminPhone,
+          smsDriverSignupAdmin(fullName, city, province, vehicleType, phone)
+        )
+      : Promise.resolve(),
+  ]);
 
   return { error: null };
 }

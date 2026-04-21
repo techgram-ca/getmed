@@ -95,3 +95,107 @@ export function smsStatusUpdate(
   const fn = STATUS_MESSAGE[status];
   return fn ? fn(patientName, deliveryType) : null;
 }
+
+// ── Pharmacy signup ───────────────────────────────────────────────
+
+export function smsPharmacySignupConfirmation(
+  contactName: string,
+  displayName: string
+): string {
+  return (
+    `Hi ${contactName}, your pharmacy "${displayName}" has been registered on GetMed! ` +
+    `Our team will review your application and get back to you within 1–2 business days.`
+  );
+}
+
+export function smsPharmacySignupAdmin(
+  displayName: string,
+  city: string,
+  province: string,
+  contactName: string,
+  phone: string
+): string {
+  return (
+    `New GetMed pharmacy application: ${displayName} (${city}, ${province}). ` +
+    `Contact: ${contactName} — ${phone}. ` +
+    `Review at getmed.ca/admin/dashboard/pharmacies`
+  );
+}
+
+// ── Pharmacy admin decision ───────────────────────────────────────
+
+export function smsPharmacyApproved(
+  contactName: string,
+  displayName: string
+): string {
+  return (
+    `Great news ${contactName}! "${displayName}" has been approved on GetMed. ` +
+    `Log in at getmed.ca/pharmacy/login to access your dashboard.`
+  );
+}
+
+export function smsPharmacyRejected(
+  contactName: string,
+  displayName: string,
+  reason: string
+): string {
+  return (
+    `Hi ${contactName}, your GetMed application for "${displayName}" was not approved. ` +
+    `Reason: ${reason}. ` +
+    `Contact support@getmed.ca if you have questions.`
+  );
+}
+
+// ── Driver signup ─────────────────────────────────────────────────
+
+export function smsDriverSignupConfirmation(fullName: string): string {
+  return (
+    `Hi ${fullName}, your GetMed driver application has been received! ` +
+    `Our team will review it within 1–2 business days and text you with a decision.`
+  );
+}
+
+export function smsDriverSignupAdmin(
+  fullName: string,
+  city: string,
+  province: string,
+  vehicleType: string,
+  phone: string
+): string {
+  return (
+    `New GetMed driver application: ${fullName} (${city}, ${province}). ` +
+    `Vehicle: ${vehicleType || "Not specified"}. Phone: ${phone}. ` +
+    `Review at getmed.ca/admin/dashboard/drivers`
+  );
+}
+
+// ── Driver admin decision ─────────────────────────────────────────
+
+export function smsDriverApproved(fullName: string): string {
+  return (
+    `Great news ${fullName}! Your GetMed driver application has been approved. ` +
+    `Log in at getmed.ca/driver/login to start accepting deliveries.`
+  );
+}
+
+export function smsDriverRejected(fullName: string, reason: string): string {
+  return (
+    `Hi ${fullName}, your GetMed driver application was not approved. ` +
+    `Reason: ${reason}. ` +
+    `Contact support@getmed.ca if you have questions.`
+  );
+}
+
+export function smsDriverSuspended(fullName: string): string {
+  return (
+    `Hi ${fullName}, your GetMed driver account has been temporarily suspended. ` +
+    `Contact support@getmed.ca for more information.`
+  );
+}
+
+export function smsDriverReactivated(fullName: string): string {
+  return (
+    `Good news ${fullName}! Your GetMed driver account has been reactivated. ` +
+    `Log in at getmed.ca/driver/login to resume deliveries.`
+  );
+}

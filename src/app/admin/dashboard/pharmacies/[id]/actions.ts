@@ -3,6 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { sendSms, smsPharmacyApproved, smsPharmacyRejected } from "@/lib/twilio";
 
 async function assertAdmin() {
   const supabase = await createClient();
@@ -12,13 +13,26 @@ async function assertAdmin() {
 
 export async function approvePharmacyAction(fd: FormData) {
   await assertAdmin();
-  const id = fd.get("pharmacyId") as string;
-
+  const id    = fd.get("pharmacyId") as string;
   const admin = createAdminClient();
+
+  const { data: pharmacy } = await admin
+    .from("pharmacies")
+    .select("display_name, contact_name, phone")
+    .eq("id", id)
+    .single();
+
   await admin
     .from("pharmacies")
     .update({ status: "approved", reviewed_at: new Date().toISOString(), rejection_reason: null })
     .eq("id", id);
+
+  if (pharmacy?.phone) {
+    await sendSms(
+      pharmacy.phone,
+      smsPharmacyApproved(pharmacy.contact_name, pharmacy.display_name)
+    );
+  }
 
   redirect(`/admin/dashboard/pharmacies/${id}?flash=approved`);
 }
@@ -31,6 +45,13 @@ export async function rejectPharmacyAction(fd: FormData) {
   if (!reason) redirect(`/admin/dashboard/pharmacies/${id}?error=reason_required`);
 
   const admin = createAdminClient();
+
+  const { data: pharmacy } = await admin
+    .from("pharmacies")
+    .select("display_name, contact_name, phone")
+    .eq("id", id)
+    .single();
+
   await admin
     .from("pharmacies")
     .update({
@@ -39,6 +60,13 @@ export async function rejectPharmacyAction(fd: FormData) {
       rejection_reason: reason,
     })
     .eq("id", id);
+
+  if (pharmacy?.phone) {
+    await sendSms(
+      pharmacy.phone,
+      smsPharmacyRejected(pharmacy.contact_name, pharmacy.display_name, reason)
+    );
+  }
 
   redirect(`/admin/dashboard/pharmacies/${id}?flash=rejected`);
 }
