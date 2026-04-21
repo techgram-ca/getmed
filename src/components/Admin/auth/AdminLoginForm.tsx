@@ -1,13 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { useActionState } from "react";
 import Link from "next/link";
-import { AlertCircle, HeartPulse, Loader2, Lock, Mail, ShieldCheck } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, HeartPulse, Loader2, Lock, Mail, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { adminLoginAction } from "@/app/admin/login/actions";
 
 export default function AdminLoginForm() {
   const [state, action, pending] = useActionState(adminLoginAction, { error: null });
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#0d1f1c] flex items-center justify-center px-4 py-12">
@@ -78,19 +80,28 @@ export default function AdminLoginForm() {
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   required
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-white/10 bg-white/5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-[#2a9d8f]/50 focus:border-[#2a9d8f]/50 transition"
+                  className="w-full pl-10 pr-11 py-3 rounded-xl border border-white/10 bg-white/5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-[#2a9d8f]/50 focus:border-[#2a9d8f]/50 transition"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  tabIndex={-1}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors cursor-pointer"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
             <Button
               type="submit"
               disabled={pending}
-              className="w-full py-3 text-sm font-bold"
+              className="w-full py-3 text-sm font-bold cursor-pointer"
             >
               {pending ? (
                 <>

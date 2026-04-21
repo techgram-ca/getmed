@@ -52,7 +52,7 @@ export default function AdminSidebar() {
 
   const logo = (
     <div className="px-4 py-5 border-b border-white/10">
-      <Link href="/" className="flex items-center gap-2.5 no-underline mb-3">
+      <Link href="/admin/dashboard" className="flex items-center gap-2.5 no-underline mb-3">
         <div className="w-8 h-8 rounded-[9px] bg-[#2a9d8f] flex items-center justify-center">
           <HeartPulse className="w-4 h-4 text-white" />
         </div>
@@ -92,7 +92,7 @@ export default function AdminSidebar() {
 
       {/* Mobile top bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-[#0d1f1c] border-b border-white/10 h-14 flex items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2 no-underline">
+        <Link href="/admin/dashboard" className="flex items-center gap-2 no-underline">
           <div className="w-7 h-7 rounded-[8px] bg-[#2a9d8f] flex items-center justify-center">
             <HeartPulse className="w-3.5 h-3.5 text-white" />
           </div>
