@@ -19,6 +19,7 @@ interface Props {
   onEnter?: () => void;
   inputId?: string;
   className?: string;
+  placeholder?: string;
 }
 
 export default function AddressAutocomplete({
@@ -27,6 +28,7 @@ export default function AddressAutocomplete({
   onEnter,
   inputId,
   className,
+  placeholder = "Enter your delivery address...",
 }: Props) {
   const [value, setValue] = useState("");
   const [predictions, setPredictions] = useState<Prediction[]>([]);
@@ -163,7 +165,7 @@ export default function AddressAutocomplete({
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        placeholder="Enter your delivery address..."
+        placeholder={placeholder}
         autoComplete="off"
         aria-autocomplete="list"
         aria-expanded={open}

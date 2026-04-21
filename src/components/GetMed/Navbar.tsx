@@ -38,6 +38,14 @@ export default function Navbar() {
             </a>
           </li>
           <li>
+            <Link
+              href="/consult"
+              className="text-sm font-medium text-[#2a9d8f] hover:text-[#21867a] transition-colors no-underline"
+            >
+              Consult a Pharmacist
+            </Link>
+          </li>
+          <li>
             <Button asChild size="default">
               <a href="#get-started">Get Started</a>
             </Button>
@@ -69,6 +77,13 @@ export default function Navbar() {
           >
             Why GetMed
           </a>
+          <Link
+            href="/consult"
+            onClick={() => setOpen(false)}
+            className="text-sm font-medium text-[#2a9d8f] no-underline"
+          >
+            Consult a Pharmacist
+          </Link>
           <Button asChild size="default" className="w-fit">
             <a href="#get-started" onClick={() => setOpen(false)}>
               Get Started
