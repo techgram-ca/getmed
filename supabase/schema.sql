@@ -490,3 +490,86 @@ create index if not exists consultations_created_at_idx   on public.consultation
 -- alter table public.app_settings enable row level security;
 -- create policy "settings_public_read" on public.app_settings
 --   for select to anon, authenticated using (true);
+
+-- ============================================================
+-- MIGRATION: Drivers module
+-- ============================================================
+
+create type driver_status as enum (
+  'pending',
+  'approved',
+  'rejected',
+  'suspended'
+);
+
+create table if not exists public.drivers (
+  id                uuid primary key default gen_random_uuid(),
+  user_id           uuid references auth.users(id) on delete cascade not null unique,
+
+  -- Contact
+  email             text,
+  full_name         text not null,
+  phone             text not null,
+  photo_url         text,
+  url_slug          text unique,
+
+  -- Service area
+  city              text not null,
+  province          text not null,
+  postal_code       text not null,
+
+  -- Vehicle
+  vehicle_type      text,
+  vehicle_make      text,
+  vehicle_model     text,
+  vehicle_year      integer,
+  vehicle_plate     text,
+
+  -- Driver's license
+  license_number    text not null,
+  license_expiry    date,
+  license_province  text,
+  license_url       text,        -- stored as storage path; use signed URL to retrieve
+
+  -- Admin review
+  status            driver_status not null default 'pending',
+  rejection_reason  text,
+  reviewed_at       timestamptz,
+
+  created_at        timestamptz not null default now(),
+  updated_at        timestamptz not null default now()
+);
+
+create index if not exists drivers_user_id_idx       on public.drivers(user_id);
+create index if not exists drivers_status_idx        on public.drivers(status);
+create index if not exists drivers_city_province_idx on public.drivers(city, province);
+create index if not exists drivers_url_slug_idx      on public.drivers(url_slug);
+
+alter table public.drivers enable row level security;
+
+create policy "driver_owner_select" on public.drivers
+  for select to authenticated using (auth.uid() = user_id);
+
+create policy "driver_owner_update" on public.drivers
+  for update to authenticated using (auth.uid() = user_id);
+
+create policy "driver_owner_insert" on public.drivers
+  for insert to authenticated with check (auth.uid() = user_id);
+
+create trigger drivers_set_updated_at
+  before update on public.drivers
+  for each row execute function public.set_updated_at();
+
+-- Storage: driver-photos (public)
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'driver-photos', 'driver-photos', true, 5242880,
+  array['image/jpeg','image/jpg','image/png','image/webp']
+) on conflict (id) do nothing;
+
+-- Storage: driver-licenses (private)
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'driver-licenses', 'driver-licenses', false, 10485760,
+  array['application/pdf','image/jpeg','image/jpg','image/png','image/webp']
+) on conflict (id) do nothing;

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Building2,
+  Car,
   HeartPulse,
   LayoutDashboard,
   LogOut,
@@ -19,6 +20,7 @@ import { adminLogoutAction } from "@/app/admin/login/actions";
 const NAV = [
   { href: "/admin/dashboard",            icon: LayoutDashboard, label: "Overview"   },
   { href: "/admin/dashboard/pharmacies", icon: Building2,       label: "Pharmacies" },
+  { href: "/admin/dashboard/drivers",    icon: Car,             label: "Drivers"    },
   { href: "/admin/dashboard/orders",     icon: Package,         label: "Orders"     },
   { href: "/admin/dashboard/settings",   icon: Settings,        label: "Settings"   },
 ];
