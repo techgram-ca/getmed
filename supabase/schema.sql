@@ -573,3 +573,40 @@ values (
   'driver-licenses', 'driver-licenses', false, 10485760,
   array['application/pdf','image/jpeg','image/jpg','image/png','image/webp']
 ) on conflict (id) do nothing;
+
+-- ============================================================
+-- MIGRATION: Driver order assignment
+-- ============================================================
+
+-- 1. Update orders status constraint to include 'dispatched'
+alter table public.orders
+  drop constraint if exists orders_status_check;
+
+alter table public.orders
+  add constraint orders_status_check check (
+    status in ('new', 'processing', 'ready', 'dispatched', 'completed', 'cancelled')
+  );
+
+-- 2. Link orders to assigned driver
+alter table public.orders
+  add column if not exists assigned_driver_id uuid
+    references public.drivers(id) on delete set null;
+
+create index if not exists orders_assigned_driver_idx on public.orders(assigned_driver_id);
+
+-- 3. RLS: drivers can select and update their assigned orders
+create policy "driver_assigned_orders_select" on public.orders
+  for select to authenticated
+  using (
+    assigned_driver_id = (
+      select id from public.drivers where user_id = auth.uid()
+    )
+  );
+
+create policy "driver_assigned_orders_update" on public.orders
+  for update to authenticated
+  using (
+    assigned_driver_id = (
+      select id from public.drivers where user_id = auth.uid()
+    )
+  );

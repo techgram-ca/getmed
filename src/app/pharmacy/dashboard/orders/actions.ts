@@ -8,7 +8,8 @@ const TRANSITIONS: Record<string, string[]> = {
   new:        ["processing", "cancelled"],
   processing: ["ready",      "cancelled"],
   cancelled:  ["processing"],
-  ready:      ["completed",  "cancelled"],
+  ready:      ["cancelled"],
+  dispatched: [],
   completed:  [],
 };
 

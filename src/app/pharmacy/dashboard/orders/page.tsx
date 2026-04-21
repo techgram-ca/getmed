@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 const PAGE_SIZE = 10;
-const STATUS_FILTERS = ["all", "new", "processing", "ready", "completed", "cancelled"] as const;
+const STATUS_FILTERS = ["all", "new", "processing", "ready", "dispatched", "completed", "cancelled"] as const;
 
 type StatusFilter = (typeof STATUS_FILTERS)[number];
 
@@ -44,6 +44,7 @@ function badgeClasses(status: string) {
   if (status === "new")        return "bg-sky-50 text-sky-700 border-sky-200";
   if (status === "processing") return "bg-amber-50 text-amber-700 border-amber-200";
   if (status === "ready")      return "bg-violet-50 text-violet-700 border-violet-200";
+  if (status === "dispatched") return "bg-teal-50 text-teal-700 border-teal-200";
   if (status === "completed")  return "bg-emerald-50 text-emerald-700 border-emerald-200";
   if (status === "cancelled")  return "bg-red-50 text-red-500 border-red-200";
   return "bg-gray-100 text-gray-700 border-gray-200";

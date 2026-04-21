@@ -16,10 +16,10 @@ const TRANSITIONS: Record<string, { label: string; status: string; style: string
     { label: "Reopen (Processing)", status: "processing", style: "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100" },
   ],
   ready: [
-    { label: "→ Completed", status: "completed",  style: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" },
-    { label: "Cancel",      status: "cancelled",  style: "bg-red-50 text-red-600 border-red-200 hover:bg-red-100" },
+    { label: "Cancel", status: "cancelled", style: "bg-red-50 text-red-600 border-red-200 hover:bg-red-100" },
   ],
-  completed: [],
+  dispatched: [],
+  completed:  [],
 };
 
 interface Props {
