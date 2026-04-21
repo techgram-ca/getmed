@@ -3,7 +3,7 @@ import { ArrowRight, HeartPulse, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const STATS = [
-  { value: "$4.2B", label: "Canadian online pharmacy market by 2027" },
+  { value: "$6.1B", label: "Canadian online pharmacy market by 2029" },
   { value: "68%", label: "of patients now prefer digital pharmacy options" },
   { value: "3×", label: "growth in online prescription orders since 2020" },
 ];
