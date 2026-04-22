@@ -60,14 +60,15 @@ export default function Hero() {
 
           <div className="mt-5 flex items-center gap-3 text-xs text-[#6b8280]">
             <div className="flex">
-              {["A", "B", "C", "D"].map((l, i) => (
-                <div
-                  key={l}
-                  className="w-7 h-7 rounded-full border-2 border-white bg-[#e0f5f2] flex items-center justify-center text-[0.65rem] font-bold text-[#2a9d8f]"
+              {[1, 2, 3, 4].map((n, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={n}
+                  src={`/images/user-${n}.jpg`}
+                  alt={`User ${n}`}
+                  className="w-7 h-7 rounded-full border-2 border-white object-cover"
                   style={{ marginLeft: i === 0 ? 0 : -6 }}
-                >
-                  {l}
-                </div>
+                />
               ))}
             </div>
             <span>Join thousands getting medicines delivered daily</span>
