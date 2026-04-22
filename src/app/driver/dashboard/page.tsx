@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Car, HeartPulse, LogOut, MapPin, Phone, User } from "lucide-react";
+import { HeartPulse, LogOut, MapPin, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import AssignedOrdersList, { type AssignedOrder } from "@/components/Driver/dashboard/AssignedOrdersList";
@@ -27,6 +27,13 @@ export default async function DriverDashboardPage() {
 
   if (!driver) redirect("/driver/login");
   if (driver.status !== "approved") redirect("/driver/login");
+
+  // All-time completed deliveries count
+  const { count: totalCompleted } = await admin
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .eq("assigned_driver_id", driver.id)
+    .eq("status", "completed");
 
   // Fetch assigned orders
   const { data: ordersRaw } = await admin
@@ -64,7 +71,7 @@ export default async function DriverDashboardPage() {
     .filter(Boolean).join(" ") || driver.vehicle_type || "—";
 
   return (
-    <div className="min-h-screen bg-[#f0faf8]">
+    <div>
       {/* Sticky mobile header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-[#e2efed] safe-area-top">
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
@@ -88,7 +95,7 @@ export default async function DriverDashboardPage() {
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-5 pb-10">
+      <main className="max-w-lg mx-auto px-4 py-5 pb-28">
         {/* Driver profile strip */}
         <div className="bg-white rounded-2xl border border-[#e2efed] shadow-sm p-4 mb-5 flex items-center gap-3">
           {driver.photo_url ? (
@@ -113,18 +120,22 @@ export default async function DriverDashboardPage() {
         </div>
 
         {/* Quick stats */}
-        <div className="grid grid-cols-2 gap-3 mb-5">
+        <div className="grid grid-cols-3 gap-2 mb-5">
           <div className="bg-white rounded-2xl border border-[#e2efed] p-3 shadow-sm text-center">
             <p className="text-2xl font-extrabold text-[#2a9d8f]">
               {orders.filter((o) => o.status === "ready").length}
             </p>
-            <p className="text-[0.65rem] text-[#6b8280] mt-0.5 font-semibold uppercase tracking-wide">To Pick Up</p>
+            <p className="text-[0.6rem] text-[#6b8280] mt-0.5 font-semibold uppercase tracking-wide">To Pick Up</p>
           </div>
           <div className="bg-white rounded-2xl border border-[#e2efed] p-3 shadow-sm text-center">
             <p className="text-2xl font-extrabold text-teal-600">
               {orders.filter((o) => o.status === "dispatched").length}
             </p>
-            <p className="text-[0.65rem] text-[#6b8280] mt-0.5 font-semibold uppercase tracking-wide">Out for Delivery</p>
+            <p className="text-[0.6rem] text-[#6b8280] mt-0.5 font-semibold uppercase tracking-wide">In Transit</p>
+          </div>
+          <div className="bg-white rounded-2xl border border-[#e2efed] p-3 shadow-sm text-center">
+            <p className="text-2xl font-extrabold text-emerald-600">{totalCompleted ?? 0}</p>
+            <p className="text-[0.6rem] text-[#6b8280] mt-0.5 font-semibold uppercase tracking-wide">All Time</p>
           </div>
         </div>
 

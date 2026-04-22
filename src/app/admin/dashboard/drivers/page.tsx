@@ -58,6 +58,18 @@ export default async function AdminDriversPage({ searchParams }: { searchParams:
     );
   }
 
+  // Delivery counts per driver (completed orders)
+  const { data: deliveryRows } = await admin
+    .from("orders")
+    .select("assigned_driver_id")
+    .eq("status", "completed")
+    .not("assigned_driver_id", "is", null);
+
+  const deliveryCounts: Record<string, number> = {};
+  (deliveryRows ?? []).forEach(({ assigned_driver_id }) => {
+    if (assigned_driver_id) deliveryCounts[assigned_driver_id] = (deliveryCounts[assigned_driver_id] ?? 0) + 1;
+  });
+
   const { data: allCities } = await admin.from("drivers").select("city").order("city");
   const cities = [
     ...new Set(
@@ -169,6 +181,11 @@ export default async function AdminDriversPage({ searchParams }: { searchParams:
                           {d.city ?? "—"}, {d.province ?? "—"}
                           {d.vehicle_type ? ` · ${d.vehicle_type}` : ""}
                         </p>
+                      </div>
+
+                      <div className="hidden sm:flex flex-col items-center shrink-0 w-14 text-center">
+                        <p className="text-base font-extrabold text-[#2a9d8f]">{deliveryCounts[d.id] ?? 0}</p>
+                        <p className="text-[0.55rem] text-[#6b8280] uppercase tracking-wide">Deliveries</p>
                       </div>
 
                       <div className="hidden md:block min-w-0 w-40">

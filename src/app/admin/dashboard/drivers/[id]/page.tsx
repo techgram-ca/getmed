@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
-import { ArrowLeft, Car, ExternalLink, FileText, Mail, MapPin, Phone, User } from "lucide-react";
+import { ArrowLeft, Car, ExternalLink, FileText, Mail, MapPin, Phone, TrendingUp, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import AdminSidebar from "@/components/Admin/dashboard/AdminSidebar";
@@ -59,6 +59,32 @@ export default async function DriverDetailPage({
   const { data: driver } = await admin.from("drivers").select("*").eq("id", id).single();
   if (!driver) notFound();
 
+  // Delivery history + stats
+  const { data: driverOrders } = await admin
+    .from("orders")
+    .select("id, order_type, patient_name, delivery_type, status, created_at, pharmacy_id")
+    .eq("assigned_driver_id", id)
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const allOrders = driverOrders ?? [];
+  const completedOrders = allOrders.filter((o) => o.status === "completed");
+  const thisMonth       = completedOrders.filter((o) => new Date(o.created_at) >= monthStart).length;
+  const inProgress      = allOrders.filter((o) => ["ready", "dispatched"].includes(o.status)).length;
+  const cancelled       = allOrders.filter((o) => o.status === "cancelled").length;
+  const successRate = completedOrders.length + cancelled > 0
+    ? Math.round((completedOrders.length / (completedOrders.length + cancelled)) * 100)
+    : null;
+
+  // Pharmacy names for history table
+  const phIds = [...new Set(allOrders.map((o) => o.pharmacy_id))];
+  const { data: phRows } = phIds.length > 0
+    ? await admin.from("pharmacies").select("id, display_name").in("id", phIds)
+    : { data: [] };
+  const phMap = Object.fromEntries((phRows ?? []).map((p) => [p.id, p.display_name]));
+
   // Generate signed URL for private license doc
   let licenseSignedUrl: string | null = null;
   if (driver.license_url) {
@@ -109,7 +135,7 @@ export default async function DriverDetailPage({
             </div>
           </div>
 
-          {/* Two-column layout */}
+          {/* Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left: details */}
             <div className="lg:col-span-2 space-y-5">
@@ -188,6 +214,78 @@ export default async function DriverDetailPage({
               </div>
             </div>
           </div>
+
+          {/* Delivery stats — full width below the 3-col section */}
+          <div className="mt-6 lg:col-span-2">
+              <div className="bg-white rounded-2xl border border-[#e2efed] shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-[#e2efed] flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-[#2a9d8f]" />
+                  <h2 className="text-sm font-bold text-[#0d1f1c]">Delivery Statistics</h2>
+                </div>
+                <div className="px-6 py-5">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+                    {[
+                      { label: "Total Delivered",   value: completedOrders.length, color: "text-emerald-600" },
+                      { label: "This Month",         value: thisMonth,              color: "text-[#2a9d8f]"   },
+                      { label: "In Progress",        value: inProgress,             color: "text-violet-600"  },
+                      { label: "Cancelled",          value: cancelled,              color: "text-red-500"     },
+                      { label: "Success Rate",       value: successRate !== null ? `${successRate}%` : "—", color: "text-[#0d1f1c]" },
+                    ].map(({ label, value, color }) => (
+                      <div key={label} className="bg-[#f8fffe] rounded-xl border border-[#e2efed] p-3 text-center">
+                        <p className={`text-2xl font-extrabold ${color}`}>{value}</p>
+                        <p className="text-[0.6rem] text-[#6b8280] mt-1 font-semibold uppercase tracking-wide">{label}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Delivery history table */}
+                  {allOrders.length > 0 && (
+                    <div>
+                      <p className="text-xs font-bold text-[#0d1f1c] uppercase tracking-wide mb-3">Recent Deliveries</p>
+                      <div className="overflow-x-auto rounded-xl border border-[#e2efed]">
+                        <table className="min-w-full text-xs">
+                          <thead>
+                            <tr className="bg-[#f8fffe] text-left">
+                              <th className="px-4 py-2.5 font-semibold text-[#6b8280]">Patient</th>
+                              <th className="px-4 py-2.5 font-semibold text-[#6b8280]">Pharmacy</th>
+                              <th className="px-4 py-2.5 font-semibold text-[#6b8280]">Type</th>
+                              <th className="px-4 py-2.5 font-semibold text-[#6b8280]">Status</th>
+                              <th className="px-4 py-2.5 font-semibold text-[#6b8280]">Date</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#f0f7f5]">
+                            {allOrders.slice(0, 30).map((o) => (
+                              <tr key={o.id} className="hover:bg-[#f8fffe]">
+                                <td className="px-4 py-2.5 font-medium text-[#0d1f1c]">{o.patient_name}</td>
+                                <td className="px-4 py-2.5 text-[#6b8280]">{phMap[o.pharmacy_id] ?? "—"}</td>
+                                <td className="px-4 py-2.5 text-[#6b8280] capitalize">{o.order_type}</td>
+                                <td className="px-4 py-2.5">
+                                  <span className={`inline-flex rounded-full border px-2 py-0.5 font-semibold ${
+                                    o.status === "completed"  ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                                    o.status === "dispatched" ? "bg-teal-50 text-teal-700 border-teal-200"         :
+                                    o.status === "cancelled"  ? "bg-red-50 text-red-500 border-red-200"            :
+                                    "bg-violet-50 text-violet-700 border-violet-200"
+                                  }`}>
+                                    {o.status}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-2.5 text-[#6b8280]">
+                                  {new Date(o.created_at).toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" })}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      {allOrders.length > 30 && (
+                        <p className="text-xs text-[#6b8280] mt-2 text-center">Showing 30 of {allOrders.length} orders</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
         </div>
       </main>
     </div>
