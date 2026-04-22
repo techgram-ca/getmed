@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 
 export interface NearbyPharmacy {
   id: string;
+  url_slug: string;
   display_name: string;
   logo_url: string | null;
   full_address: string;
@@ -157,7 +158,7 @@ function PharmacistCard({ ph }: { ph: NearbyPharmacy }) {
         {/* Book button */}
         <div className="mt-4">
           <Button asChild className="w-full">
-            <Link href={`/consult/book/${ph.id}`} className="no-underline">
+            <Link href={`/consult/${ph.url_slug}`} className="no-underline">
               Book Consultation
             </Link>
           </Button>

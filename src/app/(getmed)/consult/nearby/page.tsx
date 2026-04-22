@@ -46,7 +46,7 @@ export default async function NearbyPage({
   const { data: rows } = await admin
     .from("pharmacies")
     .select(
-      `id, display_name, logo_url, full_address, city, province, phone, lat, lng,
+      `id, url_slug, display_name, logo_url, full_address, city, province, phone, lat, lng,
        pharmacist_profiles (
          full_name, photo_url, qualification, license_number,
          years_of_experience, specialization, languages, bio,
@@ -65,6 +65,7 @@ export default async function NearbyPage({
         : ph.pharmacist_profiles ?? null;
       return {
         id:            ph.id,
+        url_slug:      ph.url_slug,
         display_name:  ph.display_name,
         logo_url:      ph.logo_url,
         full_address:  ph.full_address,
