@@ -3,15 +3,15 @@ import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import ConsultBookingLanding from "@/components/GetMed/consult/ConsultBookingLanding";
 
-type Params = Promise<{ pharmacyId: string }>;
+type Params = Promise<{ slug: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const { pharmacyId } = await params;
+  const { slug } = await params;
   const admin = createAdminClient();
   const { data } = await admin
     .from("pharmacies")
     .select("display_name")
-    .eq("id", pharmacyId)
+    .eq("url_slug", slug)
     .eq("status", "approved")
     .single();
   if (!data) return { title: "Book Consultation — GetMed" };
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 }
 
 export default async function ConsultBookingPage({ params }: { params: Params }) {
-  const { pharmacyId } = await params;
+  const { slug } = await params;
   const admin = createAdminClient();
 
   const { data: pharmacy } = await admin
@@ -27,7 +27,7 @@ export default async function ConsultBookingPage({ params }: { params: Params })
     .select(
       "id, display_name, logo_url, full_address, city, province, phone, opening_hours, payment_methods, service_online_orders, service_delivery, service_consultation"
     )
-    .eq("id", pharmacyId)
+    .eq("url_slug", slug)
     .eq("status", "approved")
     .eq("service_consultation", true)
     .single();
@@ -39,7 +39,7 @@ export default async function ConsultBookingPage({ params }: { params: Params })
     .select(
       "full_name, photo_url, qualification, years_of_experience, specialization, languages, bio, consultation_modes, consultation_fee"
     )
-    .eq("pharmacy_id", pharmacyId)
+    .eq("pharmacy_id", pharmacy.id)
     .maybeSingle();
 
   return <ConsultBookingLanding pharmacy={pharmacy} pharmacist={pharmacist ?? null} />;
