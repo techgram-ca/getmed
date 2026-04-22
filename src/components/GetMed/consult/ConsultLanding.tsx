@@ -17,7 +17,7 @@ import {
 import AddressAutocomplete, { type PlaceResult } from "@/components/GetMed/AddressAutocomplete";
 import { Button } from "@/components/ui/button";
 
-const HERO_IMG = "images/hero.png";
+const HERO_IMG = "images/consultation.jpg";
 
 const CONDITIONS = [
   {
