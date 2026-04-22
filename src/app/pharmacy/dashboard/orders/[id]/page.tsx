@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import Sidebar from "@/components/Pharmacy/dashboard/Sidebar";
 import { createClient } from "@/lib/supabase/server";
 import OrderStatusChanger from "@/components/Pharmacy/dashboard/OrderStatusChanger";
+import DeliveryProofSection, { type DeliveryProof } from "@/components/shared/DeliveryProofSection";
 
 export const metadata: Metadata = {
   title: "Order Details — GetMed Pharmacy Portal",
@@ -53,7 +54,7 @@ export default async function PharmacyOrderDetailPage({
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .select(
-      "id, pharmacy_id, order_type, patient_name, patient_phone, patient_email, delivery_type, address, details, file_urls, status, created_at, updated_at"
+      "id, pharmacy_id, order_type, patient_name, patient_phone, patient_email, delivery_type, address, details, file_urls, status, delivery_proof, created_at, updated_at"
     )
     .eq("id", id)
     .eq("pharmacy_id", pharmacy.id)
@@ -87,6 +88,15 @@ export default async function PharmacyOrderDetailPage({
   const prescriptionFiles = buildFileList(rxPaths, rxPaths ? [] : allPaths);
   const insuranceFiles    = buildFileList(insPaths, []);
   const useCategorized    = rxPaths !== null || insPaths !== null;
+
+  // Proof of delivery signed URLs
+  const proof = (order.delivery_proof ?? null) as DeliveryProof | null;
+  const podPaths = [proof?.photo_path, proof?.signature_path].filter(Boolean) as string[];
+  const { data: podSigned } = podPaths.length
+    ? await supabase.storage.from("delivery-proofs").createSignedUrls(podPaths, 60 * 60)
+    : { data: [] as { signedUrl: string | null }[] };
+  const podUrlMap: Record<string, string | null> = {};
+  podPaths.forEach((p, i) => { podUrlMap[p] = podSigned?.[i]?.signedUrl ?? null; });
 
   return (
     <div className="flex min-h-screen bg-[#f8fffe]">
@@ -179,6 +189,14 @@ export default async function PharmacyOrderDetailPage({
               <p className="text-sm text-[#6b8280]">No additional details provided.</p>
             )}
           </section>
+
+          {proof && (
+            <DeliveryProofSection
+              proof={proof}
+              photoUrl={proof.photo_path ? (podUrlMap[proof.photo_path] ?? null) : null}
+              signatureUrl={proof.signature_path ? (podUrlMap[proof.signature_path] ?? null) : null}
+            />
+          )}
 
           <section className="bg-white rounded-2xl border border-[#e2efed] shadow-sm p-5 mt-6">
             <h2 className="text-sm font-bold text-[#0d1f1c] mb-4">Uploaded files</h2>

@@ -18,8 +18,9 @@ const TRANSITIONS: Record<string, { label: string; status: string; style: string
   ready: [
     { label: "Cancel", status: "cancelled", style: "bg-red-50 text-red-600 border-red-200 hover:bg-red-100" },
   ],
-  dispatched: [],
-  completed:  [],
+  dispatched:       [],
+  completed:        [],
+  delivery_failed:  [],
 };
 
 interface Props {

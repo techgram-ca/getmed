@@ -9,8 +9,9 @@ const TRANSITIONS: Record<string, string[]> = {
   processing: ["ready",      "cancelled"],
   cancelled:  ["processing"],
   ready:      ["cancelled"],
-  dispatched: [],
-  completed:  [],
+  dispatched:       [],
+  completed:        [],
+  delivery_failed:  [],
 };
 
 export async function updateOrderStatusAction(
