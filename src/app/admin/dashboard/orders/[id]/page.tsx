@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import AdminSidebar from "@/components/Admin/dashboard/AdminSidebar";
+import DeliveryProofSection, { type DeliveryProof } from "@/components/shared/DeliveryProofSection";
 
 export const metadata: Metadata = { title: "Order Detail — GetMed Admin" };
 
@@ -25,7 +26,8 @@ function badgeClasses(status: string) {
   if (status === "processing") return "bg-amber-50 text-amber-700 border-amber-200";
   if (status === "ready")      return "bg-violet-50 text-violet-700 border-violet-200";
   if (status === "completed")  return "bg-emerald-50 text-emerald-700 border-emerald-200";
-  if (status === "cancelled")  return "bg-red-50 text-red-500 border-red-200";
+  if (status === "cancelled")       return "bg-red-50 text-red-500 border-red-200";
+  if (status === "delivery_failed") return "bg-orange-50 text-orange-600 border-orange-200";
   return "bg-gray-100 text-gray-700 border-gray-200";
 }
 
@@ -39,7 +41,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
   const { data: order } = await admin
     .from("orders")
-    .select("id, order_type, patient_name, patient_phone, patient_email, delivery_type, address, status, pharmacy_id, details, created_at, updated_at")
+    .select("id, order_type, patient_name, patient_phone, patient_email, delivery_type, address, status, pharmacy_id, details, delivery_proof, created_at, updated_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -53,6 +55,14 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
   const details = (order.details ?? {}) as Record<string, unknown>;
   const filteredDetails = Object.entries(details).filter(([k]) => !HIDDEN_KEYS.has(k));
+
+  const proof = (order.delivery_proof ?? null) as DeliveryProof | null;
+  const podPaths = [proof?.photo_path, proof?.signature_path].filter(Boolean) as string[];
+  const { data: podSigned } = podPaths.length
+    ? await admin.storage.from("delivery-proofs").createSignedUrls(podPaths, 60 * 60)
+    : { data: [] as { signedUrl: string | null }[] };
+  const podUrlMap: Record<string, string | null> = {};
+  podPaths.forEach((p, i) => { podUrlMap[p] = podSigned?.[i]?.signedUrl ?? null; });
 
   return (
     <div className="flex min-h-screen bg-[#f8fffe]">
@@ -173,6 +183,14 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               </article>
             )}
           </div>
+
+          {proof && (
+            <DeliveryProofSection
+              proof={proof}
+              photoUrl={proof.photo_path ? (podUrlMap[proof.photo_path] ?? null) : null}
+              signatureUrl={proof.signature_path ? (podUrlMap[proof.signature_path] ?? null) : null}
+            />
+          )}
         </div>
       </main>
     </div>

@@ -615,3 +615,28 @@ create policy "driver_assigned_orders_update" on public.orders
 insert into public.app_settings (key, value)
 values ('sms_enabled', 'false')
 on conflict (key) do nothing;
+
+-- ============================================================
+-- MIGRATION: Proof of delivery
+-- ============================================================
+
+-- 1. Update orders status constraint to include 'delivery_failed'
+alter table public.orders
+  drop constraint if exists orders_status_check;
+
+alter table public.orders
+  add constraint orders_status_check check (
+    status in ('new', 'processing', 'ready', 'dispatched', 'completed', 'cancelled', 'delivery_failed')
+  );
+
+-- 2. Add delivery_proof JSONB column
+-- Stores: { outcome, note, photo_path, signature_path, captured_at }
+alter table public.orders
+  add column if not exists delivery_proof jsonb;
+
+-- 3. Storage: delivery-proofs (private — admin client only)
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'delivery-proofs', 'delivery-proofs', false, 20971520,
+  array['image/jpeg','image/jpg','image/png','image/webp']
+) on conflict (id) do nothing;
