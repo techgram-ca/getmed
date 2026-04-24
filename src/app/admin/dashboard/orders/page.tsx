@@ -17,7 +17,7 @@ export default async function AdminOrdersPage() {
   // Load ALL orders at once — filtering is done client-side
   const { data: ordersRaw } = await admin
     .from("orders")
-    .select("id, order_type, patient_name, patient_phone, delivery_type, address, status, pharmacy_id, assigned_driver_id, created_at")
+    .select("id, order_type, patient_name, patient_phone, delivery_type, address, status, order_source, pharmacy_id, assigned_driver_id, created_at")
     .order("created_at", { ascending: false });
 
   // All approved pharmacies for filter dropdown + name lookup

@@ -20,11 +20,9 @@ export async function createManualOrderAction(
   if (!pharmacy) return { error: "Pharmacy not found." };
 
   const admin        = createAdminClient();
-  const orderType    = fd.get("orderType")    as string;
   const patientName  = fd.get("name")         as string;
   const patientPhone = fd.get("phone")        as string;
   const patientEmail = fd.get("email")        as string | null;
-  const deliveryType = fd.get("deliveryType") as string;
   const address      = fd.get("address")      as string | null;
   const deliveryInstructions = fd.get("deliveryInstructions") as string | null;
 
@@ -35,14 +33,15 @@ export async function createManualOrderAction(
 
   const { error } = await admin.from("orders").insert({
     pharmacy_id:   pharmacy.id,
-    order_type:    orderType,
+    order_type:    "prescription",
     patient_name:  patientName,
     patient_phone: patientPhone,
     patient_email: patientEmail || null,
-    delivery_type: deliveryType,
-    address:       deliveryType === "delivery" ? (address || null) : null,
+    delivery_type: "delivery",
+    address:       address || null,
     details,
     file_urls:     [],
+    status:        "ready",
     order_source:  "manual",
   });
 

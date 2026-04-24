@@ -13,6 +13,7 @@ export interface OrderRow {
   delivery_type: string;
   address: string | null;
   status: string;
+  order_source: string | null;
   pharmacy_id: string;
   assigned_driver_id: string | null;
   created_at: string;
@@ -35,6 +36,7 @@ export interface DriverInfo {
 const STATUS_OPTIONS  = ["all", "new", "processing", "ready", "dispatched", "completed", "cancelled"] as const;
 const TYPE_OPTIONS    = ["all", "prescription", "transfer", "otc"] as const;
 const DELIVERY_OPTIONS = ["all", "delivery", "pickup"] as const;
+const SOURCE_OPTIONS  = ["all", "online", "manual"] as const;
 
 function formatLabel(v: string) {
   return v.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -60,6 +62,7 @@ export default function AdminOrdersClient({ orders, pharmacies, drivers }: Props
   const [statusFilter,   setStatusFilter]   = useState<string>("all");
   const [typeFilter,     setTypeFilter]     = useState<string>("all");
   const [deliveryFilter, setDeliveryFilter] = useState<string>("all");
+  const [sourceFilter,   setSourceFilter]   = useState<string>("all");
   const [pharmacyFilter, setPharmacyFilter] = useState<string>("");
   const [cityFilter,     setCityFilter]     = useState<string>("");
   const [pending, startTransition] = useTransition();
@@ -87,10 +90,11 @@ export default function AdminOrdersClient({ orders, pharmacies, drivers }: Props
   const filtered = useMemo(() => {
     const city = cityFilter.trim().toLowerCase();
     return orders.filter((o) => {
-      if (statusFilter   !== "all" && o.status       !== statusFilter)   return false;
-      if (typeFilter     !== "all" && o.order_type   !== typeFilter)     return false;
+      if (statusFilter   !== "all" && o.status        !== statusFilter)   return false;
+      if (typeFilter     !== "all" && o.order_type    !== typeFilter)     return false;
       if (deliveryFilter !== "all" && o.delivery_type !== deliveryFilter) return false;
-      if (pharmacyFilter && o.pharmacy_id !== pharmacyFilter)            return false;
+      if (sourceFilter   !== "all" && (o.order_source ?? "online") !== sourceFilter) return false;
+      if (pharmacyFilter && o.pharmacy_id !== pharmacyFilter)             return false;
       if (city) {
         const phCity = (pharmacyMap[o.pharmacy_id]?.city ?? "").toLowerCase();
         const addr   = (o.address ?? "").toLowerCase();
@@ -98,7 +102,7 @@ export default function AdminOrdersClient({ orders, pharmacies, drivers }: Props
       }
       return true;
     });
-  }, [orders, statusFilter, typeFilter, deliveryFilter, pharmacyFilter, cityFilter, pharmacyMap]);
+  }, [orders, statusFilter, typeFilter, deliveryFilter, sourceFilter, pharmacyFilter, cityFilter, pharmacyMap]);
 
   function handleAssign(orderId: string, driverId: string | null) {
     setAssigningId(orderId);
@@ -170,6 +174,18 @@ export default function AdminOrdersClient({ orders, pharmacies, drivers }: Props
           </select>
         </div>
         <div>
+          <label className="block text-[0.65rem] font-bold uppercase tracking-wider text-[#6b8280] mb-1">Source</label>
+          <select
+            value={sourceFilter}
+            onChange={(e) => setSourceFilter(e.target.value)}
+            className="px-3 py-2 rounded-xl border border-[#e2efed] text-xs text-[#0d1f1c] bg-white focus:outline-none focus:border-[#2a9d8f]"
+          >
+            {SOURCE_OPTIONS.map((s) => (
+              <option key={s} value={s}>{s === "all" ? "All Sources" : formatLabel(s)}</option>
+            ))}
+          </select>
+        </div>
+        <div>
           <label className="block text-[0.65rem] font-bold uppercase tracking-wider text-[#6b8280] mb-1">Pharmacy</label>
           <select
             value={pharmacyFilter}
@@ -197,6 +213,7 @@ export default function AdminOrdersClient({ orders, pharmacies, drivers }: Props
             setStatusFilter("all");
             setTypeFilter("all");
             setDeliveryFilter("all");
+            setSourceFilter("all");
             setPharmacyFilter("");
             setCityFilter("");
           }}
@@ -224,6 +241,7 @@ export default function AdminOrdersClient({ orders, pharmacies, drivers }: Props
               <thead>
                 <tr className="bg-[#f8fffe] text-left">
                   <th className="px-5 py-3 text-xs font-semibold text-[#6b8280]">Order</th>
+                  <th className="px-5 py-3 text-xs font-semibold text-[#6b8280]">Source</th>
                   <th className="px-5 py-3 text-xs font-semibold text-[#6b8280]">Pharmacy</th>
                   <th className="px-5 py-3 text-xs font-semibold text-[#6b8280]">Patient</th>
                   <th className="px-5 py-3 text-xs font-semibold text-[#6b8280]">Delivery</th>
@@ -245,6 +263,15 @@ export default function AdminOrdersClient({ orders, pharmacies, drivers }: Props
                       <td className="px-5 py-4">
                         <p className="text-sm font-semibold text-[#0d1f1c]">{formatLabel(order.order_type)}</p>
                         <p className="text-xs text-[#6b8280]">#{order.id.slice(0, 8)}</p>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold capitalize ${
+                          (order.order_source ?? "online") === "manual"
+                            ? "bg-purple-50 text-purple-700 border-purple-200"
+                            : "bg-sky-50 text-sky-700 border-sky-200"
+                        }`}>
+                          {order.order_source ?? "online"}
+                        </span>
                       </td>
                       <td className="px-5 py-4">
                         <p className="text-sm font-semibold text-[#0d1f1c]">{ph?.display_name ?? "—"}</p>
