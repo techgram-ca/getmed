@@ -75,6 +75,7 @@ export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
 
   // Resolve dynamic content with fallbacks
   const heroImage    = pharmacy.hero_image_url  || "/images/hero.png";
+  const heroPharmacyName  = pharmacy.display_name;
   const heroTitle    = pharmacy.hero_title      || pharmacy.display_name;
   const heroSubtitle = pharmacy.hero_subtitle   || FALLBACK_SUBTITLE;
   const aboutHeading = pharmacy.about_heading   || `Caring for ${pharmacy.city} since day one`;
@@ -197,15 +198,15 @@ export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
             Your trusted pharmacy
           </p>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-4">
-            {heroTitle}
+            {heroPharmacyName}
           </h1>
           <p className="text-white/80 text-lg md:text-xl font-medium mb-8 max-w-xl">
-            {heroSubtitle}
+            {heroTitle}
           </p>
 
           <blockquote className="flex items-start gap-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 max-w-lg">
             <Quote className="w-5 h-5 text-[#2a9d8f] shrink-0 mt-0.5" />
-            <p className="text-white/90 text-sm italic leading-relaxed">{FALLBACK_QUOTE}</p>
+            <p className="text-white/90 text-sm italic leading-relaxed">{heroSubtitle}</p>
           </blockquote>
         </div>
       </section>
