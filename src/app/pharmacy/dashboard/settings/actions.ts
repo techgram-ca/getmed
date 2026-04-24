@@ -30,12 +30,11 @@ export async function updatePharmacyDetailsAction(
     const { error: uploadErr } = await admin.storage
       .from("pharmacy-logos")
       .upload(path, await logoFile.arrayBuffer(), { contentType: logoFile.type });
-    if (!uploadErr) {
-      const { data: { publicUrl } } = admin.storage
-        .from("pharmacy-logos")
-        .getPublicUrl(path);
-      logoUrl = publicUrl;
-    }
+    if (uploadErr) return { error: `Logo upload failed: ${uploadErr.message}` };
+    const { data: { publicUrl } } = admin.storage
+      .from("pharmacy-logos")
+      .getPublicUrl(path);
+    logoUrl = publicUrl;
   }
 
   const updateData: Record<string, unknown> = {
@@ -87,12 +86,11 @@ export async function updatePharmacistAction(
     const { error: uploadErr } = await admin.storage
       .from("pharmacist-photos")
       .upload(path, await photoFile.arrayBuffer(), { contentType: photoFile.type });
-    if (!uploadErr) {
-      const { data: { publicUrl } } = admin.storage
-        .from("pharmacist-photos")
-        .getPublicUrl(path);
-      photoUrl = publicUrl;
-    }
+    if (uploadErr) return { error: `Photo upload failed: ${uploadErr.message}` };
+    const { data: { publicUrl } } = admin.storage
+      .from("pharmacist-photos")
+      .getPublicUrl(path);
+    photoUrl = publicUrl;
   }
 
   const fullName        = fd.get("fullName")      as string;
@@ -158,12 +156,11 @@ export async function updateLandingPageAction(
     const { error: uploadErr } = await admin.storage
       .from("pharmacy-hero-images")
       .upload(path, await heroImageFile.arrayBuffer(), { contentType: heroImageFile.type });
-    if (!uploadErr) {
-      const { data: { publicUrl } } = admin.storage
-        .from("pharmacy-hero-images")
-        .getPublicUrl(path);
-      heroImageUrl = publicUrl;
-    }
+    if (uploadErr) return { error: `Image upload failed: ${uploadErr.message}` };
+    const { data: { publicUrl } } = admin.storage
+      .from("pharmacy-hero-images")
+      .getPublicUrl(path);
+    heroImageUrl = publicUrl;
   }
 
   const updateData: Record<string, unknown> = {
