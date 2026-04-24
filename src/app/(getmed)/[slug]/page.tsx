@@ -43,5 +43,13 @@ export default async function PharmacyLandingPage({
 
   if (!pharmacy) notFound();
 
-  return <PharmacyPublicPage pharmacy={pharmacy} slug={slug} />;
+  const { data: pharmacistProfile } = await admin
+    .from("pharmacist_profiles")
+    .select("consultation_fee")
+    .eq("pharmacy_id", pharmacy.id)
+    .maybeSingle();
+
+  const consultationFee = pharmacistProfile?.consultation_fee ?? null;
+
+  return <PharmacyPublicPage pharmacy={pharmacy} slug={slug} consultationFee={consultationFee} />;
 }
