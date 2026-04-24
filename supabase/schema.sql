@@ -102,7 +102,7 @@ create table if not exists public.orders (
   id            uuid primary key default gen_random_uuid(),
   pharmacy_id   uuid references public.pharmacies(id) on delete cascade not null,
 
-  order_type    text not null check (order_type in ('prescription', 'transfer', 'otc')),
+  order_type    text not null check (order_type in ('prescription', 'transfer', 'otc', 'manual')),
   patient_name  text not null,
   patient_phone text not null,
   patient_email text,
@@ -658,6 +658,18 @@ on conflict (key) do nothing;
 alter table public.orders
   add column if not exists order_source text not null default 'online'
     check (order_source in ('online', 'manual'));
+
+-- ============================================================
+-- MIGRATION: Add 'manual' to order_type
+-- ============================================================
+
+alter table public.orders
+  drop constraint if exists orders_order_type_check;
+
+alter table public.orders
+  add constraint orders_order_type_check check (
+    order_type in ('prescription', 'transfer', 'otc', 'manual')
+  );
 
 -- ============================================================
 -- MIGRATION: Proof of delivery
