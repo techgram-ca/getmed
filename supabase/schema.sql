@@ -52,6 +52,15 @@ create table if not exists public.pharmacies (
   service_delivery      boolean not null default false,
   service_consultation  boolean not null default false,
 
+  -- Landing page customisation
+  hero_image_url        text,            -- public URL from pharmacy-hero-images bucket
+  hero_title            text,            -- defaults to display_name when null
+  hero_subtitle         text,
+  about_heading         text,
+  about_description     text,
+  landing_stats         jsonb default '[]'::jsonb,
+  -- landing_stats shape: [{ "value": "15+", "label": "Years serving" }, ...]
+
   -- Admin review
   status                pharmacy_status not null default 'pending',
   rejection_reason      text,
@@ -258,6 +267,13 @@ values
     false,                    -- private: pharmacy staff only
     20971520,                 -- 20 MB
     array['image/jpeg','image/jpg','image/png','image/webp','application/pdf']
+  ),
+  (
+    'pharmacy-hero-images',
+    'pharmacy-hero-images',
+    true,                     -- public: patients can view hero images
+    10485760,                 -- 10 MB
+    array['image/jpeg','image/jpg','image/png','image/webp']
   )
 on conflict (id) do nothing;
 
@@ -315,6 +331,25 @@ create policy "prescription_uploads_pharmacy_read" on storage.objects
       where id::text = (storage.foldername(name))[1]
         and user_id = auth.uid()
     )
+  );
+
+-- Pharmacy hero images: public read, owner upload/update
+create policy "hero_image_public_read" on storage.objects
+  for select to public
+  using (bucket_id = 'pharmacy-hero-images');
+
+create policy "hero_image_owner_upload" on storage.objects
+  for insert to authenticated
+  with check (
+    bucket_id = 'pharmacy-hero-images'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "hero_image_owner_update" on storage.objects
+  for update to authenticated
+  using (
+    bucket_id = 'pharmacy-hero-images'
+    and (storage.foldername(name))[1] = auth.uid()::text
   );
 
 -- ============================================================
