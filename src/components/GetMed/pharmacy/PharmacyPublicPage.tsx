@@ -19,8 +19,6 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import TransferForm from "./forms/TransferForm";
-import PrescriptionForm from "./forms/PrescriptionForm";
 
 interface Pharmacy {
   id: string;
@@ -54,9 +52,9 @@ export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const services = [
-    pharmacy.service_online_orders && { label: "Online Orders",             icon: ShoppingBag, color: "text-blue-600",   bg: "bg-blue-50"   },
-    pharmacy.service_delivery      && { label: "Home Delivery",             icon: Truck,       color: "text-purple-600", bg: "bg-purple-50" },
-    pharmacy.service_consultation  && { label: "Pharmacist Consultation",   icon: Stethoscope, color: "text-teal-600",   bg: "bg-teal-50"   },
+    pharmacy.service_online_orders && { label: "Online Orders",           icon: ShoppingBag, color: "text-blue-600",   bg: "bg-blue-50"   },
+    pharmacy.service_delivery      && { label: "Home Delivery",           icon: Truck,       color: "text-purple-600", bg: "bg-purple-50" },
+    pharmacy.service_consultation  && { label: "Pharmacist Consultation", icon: Stethoscope, color: "text-teal-600",   bg: "bg-teal-50"   },
   ].filter(Boolean) as Array<{ label: string; icon: React.ElementType; color: string; bg: string }>;
 
   return (
@@ -129,11 +127,11 @@ export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
       <div className="sticky top-16 z-40 bg-white border-b border-[#e2efed] shadow-sm">
         <div className="max-w-[1200px] mx-auto px-6 h-14 flex items-center justify-between gap-4">
 
-          {/* Pharmacy logo + name */}
+          {/* Pharmacy logo (3:1 horizontal) + name */}
           <div className="flex items-center gap-3 min-w-0">
-            <div className="shrink-0 w-9 h-9 rounded-xl bg-[#e0f5f2] border border-[#e2efed] flex items-center justify-center overflow-hidden">
+            <div className="shrink-0 h-9 w-[108px] rounded-xl bg-[#e0f5f2] border border-[#e2efed] flex items-center justify-center overflow-hidden">
               {pharmacy.logo_url ? (
-                <img src={pharmacy.logo_url} alt="" className="w-full h-full object-cover" />
+                <img src={pharmacy.logo_url} alt={pharmacy.display_name} className="w-full h-full object-contain" />
               ) : (
                 <span className="text-sm font-extrabold text-[#2a9d8f]">
                   {pharmacy.display_name.slice(0, 2).toUpperCase()}
@@ -277,7 +275,7 @@ export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
                 </p>
               </div>
               <Button asChild className="w-full" size="default">
-                <a href={`/pharmacy/${slug}#transfer`}>Transfer Prescription</a>
+                <Link href={`/pharmacy/${slug}#transfer`}>Transfer Prescription</Link>
               </Button>
             </div>
 
@@ -293,7 +291,7 @@ export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
                 </p>
               </div>
               <Button asChild className="w-full" size="default">
-                <a href={`/pharmacy/${slug}#prescription`}>Order Prescription</a>
+                <Link href={`/pharmacy/${slug}#prescription`}>Order Prescription</Link>
               </Button>
             </div>
 
@@ -313,50 +311,6 @@ export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
               </Button>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ── 6. Transfer Form Section ────────────────────────────────── */}
-      <section id="transfer" className="bg-white border-t border-[#e2efed] py-16 scroll-mt-32">
-        <div className="max-w-[800px] mx-auto px-6">
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-[#e0f5f2] flex items-center justify-center shrink-0">
-                <ArrowLeftRight className="w-5 h-5 text-[#2a9d8f]" />
-              </div>
-              <h2 className="text-2xl font-extrabold text-[#0d1f1c]">Transfer a Prescription</h2>
-            </div>
-            <p className="text-[#6b8280]">
-              Fill out the form below and we will handle the rest — no hassle, no extra cost.
-            </p>
-          </div>
-          <TransferForm
-            pharmacyId={pharmacy.id}
-            defaultAddress={null}
-            hasDelivery={pharmacy.service_delivery}
-          />
-        </div>
-      </section>
-
-      {/* ── 7. Order Prescription Section ───────────────────────────── */}
-      <section id="prescription" className="border-t border-[#e2efed] py-16 bg-[#f8fffe] scroll-mt-32">
-        <div className="max-w-[800px] mx-auto px-6">
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-[#e0f5f2] flex items-center justify-center shrink-0">
-                <FileText className="w-5 h-5 text-[#2a9d8f]" />
-              </div>
-              <h2 className="text-2xl font-extrabold text-[#0d1f1c]">Order a Prescription</h2>
-            </div>
-            <p className="text-[#6b8280]">
-              Submit your prescription details below and choose pickup or delivery at checkout.
-            </p>
-          </div>
-          <PrescriptionForm
-            pharmacyId={pharmacy.id}
-            defaultAddress={null}
-            hasDelivery={pharmacy.service_delivery}
-          />
         </div>
       </section>
 
