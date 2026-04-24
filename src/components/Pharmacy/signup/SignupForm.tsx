@@ -34,9 +34,9 @@ interface FormState {
 const INITIAL: FormState = {
   basic: { contactName: "", email: "", phone: "", password: "" },
   pharmacy: DEFAULT_PHARMACY_DETAILS,
+  landing: DEFAULT_LANDING_PAGE,
   services: { onlineOrders: false, delivery: false, consultation: false },
   pharmacist: DEFAULT_PHARMACIST,
-  landing: DEFAULT_LANDING_PAGE,
 };
 
 export default function SignupForm() {
@@ -72,10 +72,7 @@ export default function SignupForm() {
         })
       );
 
-      // ── Services ───────────────────────────────────────────────
-      fd.append("services", JSON.stringify(form.services));
-
-      // ── Landing page content ───────────────────────────────────
+       // ── Landing page content ───────────────────────────────────
       fd.append(
         "landing",
         JSON.stringify({
@@ -90,6 +87,9 @@ export default function SignupForm() {
         fd.append("heroImageFile", form.landing.heroImageFile);
       }
 
+      // ── Services ───────────────────────────────────────────────
+      fd.append("services", JSON.stringify(form.services));
+     
       // ── Files ─────────────────────────────────────────────────
       if (form.pharmacy.logoFile) {
         fd.append("logoFile", form.pharmacy.logoFile);
@@ -182,8 +182,8 @@ export default function SignupForm() {
             {[
               "Basic Info",
               "Pharmacy Details",
-              "Services",
               "Landing Page",
+              "Services",
               ...(form.services.consultation ? ["Pharmacist Profile"] : []),
             ].map((label, i) => (
               <span
