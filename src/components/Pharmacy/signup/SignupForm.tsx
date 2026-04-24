@@ -212,15 +212,15 @@ export default function SignupForm() {
           onChange={(v) => setForm((prev) => ({ ...prev, pharmacy: v }))}
         />
 
-        <Services
-          value={form.services}
-          onChange={(v) => setForm((prev) => ({ ...prev, services: v }))}
-        />
-
         <LandingPage
-          step={4}
           value={form.landing}
           onChange={(v) => setForm((prev) => ({ ...prev, landing: v }))}
+        />
+
+        <Services
+          step={4}
+          value={form.services}
+          onChange={(v) => setForm((prev) => ({ ...prev, services: v }))}
         />
 
         {form.services.consultation && (
