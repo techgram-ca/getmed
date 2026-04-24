@@ -41,7 +41,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
   const { data: order } = await admin
     .from("orders")
-    .select("id, order_type, patient_name, patient_phone, patient_email, delivery_type, address, status, pharmacy_id, details, delivery_proof, created_at, updated_at")
+    .select("id, order_type, patient_name, patient_phone, patient_email, delivery_type, address, status, order_source, pharmacy_id, details, delivery_proof, created_at, updated_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -100,6 +100,10 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                 <div className="flex justify-between">
                   <dt className="text-[#6b8280]">Status</dt>
                   <dd className="font-semibold text-[#0d1f1c]">{formatLabel(order.status)}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-[#6b8280]">Source</dt>
+                  <dd className="font-semibold text-[#0d1f1c] capitalize">{order.order_source ?? "online"}</dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-[#6b8280]">Delivery</dt>

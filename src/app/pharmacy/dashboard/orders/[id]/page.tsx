@@ -54,7 +54,7 @@ export default async function PharmacyOrderDetailPage({
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .select(
-      "id, pharmacy_id, order_type, patient_name, patient_phone, patient_email, delivery_type, address, details, file_urls, status, delivery_proof, created_at, updated_at"
+      "id, pharmacy_id, order_type, patient_name, patient_phone, patient_email, delivery_type, address, details, file_urls, status, order_source, delivery_proof, created_at, updated_at"
     )
     .eq("id", id)
     .eq("pharmacy_id", pharmacy.id)
@@ -128,6 +128,10 @@ export default async function PharmacyOrderDetailPage({
                 <div>
                   <dt className="text-[#6b8280]">Status</dt>
                   <dd className="font-semibold text-[#0d1f1c]">{formatLabel(order.status)}</dd>
+                </div>
+                <div>
+                  <dt className="text-[#6b8280]">Source</dt>
+                  <dd className="font-semibold text-[#0d1f1c] capitalize">{order.order_source ?? "online"}</dd>
                 </div>
                 <div>
                   <dt className="text-[#6b8280]">Delivery type</dt>
