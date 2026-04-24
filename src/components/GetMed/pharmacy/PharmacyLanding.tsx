@@ -75,9 +75,9 @@ function PharmacyInfoCard({ pharmacy, open }: { pharmacy: Pharmacy; open: boolea
     <div className="bg-white rounded-2xl border border-[#e2efed] shadow-sm p-5 space-y-4">
       {/* Logo + Name */}
       <div className="flex items-center gap-4">
-        <div className="shrink-0 w-16 h-16 rounded-2xl bg-[#e0f5f2] border border-[#e2efed] flex items-center justify-center overflow-hidden">
+        <div className="shrink-0 h-12 w-36 rounded-2xl bg-[#e0f5f2] border border-[#e2efed] flex items-center justify-center overflow-hidden">
           {pharmacy.logo_url ? (
-            <img src={pharmacy.logo_url} alt="" className="w-full h-full object-cover" />
+            <img src={pharmacy.logo_url} alt={pharmacy.display_name} className="w-full h-full object-contain" />
           ) : (
             <span className="text-xl font-extrabold text-[#2a9d8f]">
               {pharmacy.display_name.slice(0, 2).toUpperCase()}

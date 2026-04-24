@@ -42,23 +42,35 @@ function isOpenNow(hours: Record<string, { open: boolean; openTime: string; clos
   return cur >= oH * 60 + oM && cur < cH * 60 + cM;
 }
 
+function buildHref(ph: SearchPharmacy, searchLat?: number, searchLng?: number, searchAddress?: string | null) {
+  const slug = ph.url_slug ?? ph.id;
+  const p = new URLSearchParams();
+  if (searchAddress) p.set("address", searchAddress);
+  if (searchLat != null) p.set("lat", searchLat.toString());
+  if (searchLng != null) p.set("lng", searchLng.toString());
+  const qs = p.toString();
+  return `/pharmacy/${slug}${qs ? `?${qs}` : ""}`;
+}
+
 export default function PharmacyCard({ pharmacy: ph, index, isActive, onMouseEnter, onMouseLeave, searchLat, searchLng, searchAddress }: Props) {
   const open = isOpenNow(ph.opening_hours ?? {});
+  const href = buildHref(ph, searchLat, searchLng, searchAddress);
 
   return (
-    <div
+    <a
+      href={href}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className={`p-4 border-b border-[#e2efed] transition-colors cursor-default ${
+      className={`block p-4 border-b border-[#e2efed] transition-colors no-underline ${
         isActive ? "bg-[#f0fbf9]" : "hover:bg-[#f8fffe]"
       }`}
     >
       <div className="flex items-start gap-3">
-        {/* Number badge + logo */}
+        {/* Number badge + horizontal logo (3:1) */}
         <div className="relative shrink-0">
-          <div className="w-12 h-12 rounded-xl bg-[#e0f5f2] flex items-center justify-center overflow-hidden border border-[#e2efed]">
+          <div className="h-10 w-[120px] rounded-xl bg-[#e0f5f2] flex items-center justify-center overflow-hidden border border-[#e2efed]">
             {ph.logo_url ? (
-              <img src={ph.logo_url} alt="" className="w-full h-full object-cover" />
+              <img src={ph.logo_url} alt={ph.display_name} className="w-full h-full object-contain" />
             ) : (
               <span className="text-sm font-extrabold text-[#2a9d8f]">
                 {ph.display_name.slice(0, 2).toUpperCase()}
@@ -119,25 +131,6 @@ export default function PharmacyCard({ pharmacy: ph, index, isActive, onMouseEnt
           </div>
         </div>
       </div>
-
-      {/* CTA buttons */}
-      <div className="mt-3">
-        <a
-          href={(() => {
-            const slug = ph.url_slug ?? ph.id;
-            const p = new URLSearchParams();
-            if (searchAddress) p.set("address", searchAddress);
-            if (searchLat != null) p.set("lat", searchLat.toString());
-            if (searchLng != null) p.set("lng", searchLng.toString());
-            const qs = p.toString();
-            return `/${slug}${qs ? `?${qs}` : ""}`;
-          })()}
-          className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#2a9d8f] text-white text-xs font-bold hover:bg-[#21867a] transition-colors no-underline"
-        >
-          <ShoppingBag className="w-3.5 h-3.5" />
-          Order Now
-        </a>
-      </div>
-    </div>
+    </a>
   );
 }
