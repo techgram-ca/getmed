@@ -33,7 +33,7 @@ export async function createManualOrderAction(
 
   const { error } = await admin.from("orders").insert({
     pharmacy_id:   pharmacy.id,
-    order_type:    "prescription",
+    order_type:    "manual",
     patient_name:  patientName,
     patient_phone: patientPhone,
     patient_email: patientEmail || null,
