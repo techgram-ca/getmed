@@ -213,12 +213,12 @@ export default function SignupForm() {
         />
 
         <LandingPage
+          step={3}
           value={form.landing}
           onChange={(v) => setForm((prev) => ({ ...prev, landing: v }))}
         />
 
         <Services
-          step={4}
           value={form.services}
           onChange={(v) => setForm((prev) => ({ ...prev, services: v }))}
         />
