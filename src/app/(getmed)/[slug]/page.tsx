@@ -35,7 +35,7 @@ export default async function PharmacyLandingPage({
   const { data: pharmacy } = await admin
     .from("pharmacies")
     .select(
-      "id, display_name, logo_url, full_address, city, province, phone, service_online_orders, service_delivery, service_consultation"
+      "id, display_name, logo_url, full_address, city, province, phone, service_online_orders, service_delivery, service_consultation, hero_image_url, hero_title, hero_subtitle, about_heading, about_description, landing_stats"
     )
     .eq("url_slug", slug)
     .eq("status", "approved")

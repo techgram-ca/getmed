@@ -20,6 +20,11 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+interface StatCard {
+  value: string;
+  label: string;
+}
+
 interface Pharmacy {
   id: string;
   display_name: string;
@@ -31,6 +36,13 @@ interface Pharmacy {
   service_online_orders: boolean;
   service_delivery: boolean;
   service_consultation: boolean;
+  // Landing page fields
+  hero_image_url:    string | null;
+  hero_title:        string | null;
+  hero_subtitle:     string | null;
+  about_heading:     string | null;
+  about_description: string | null;
+  landing_stats:     StatCard[] | null;
 }
 
 interface Props {
@@ -38,15 +50,19 @@ interface Props {
   slug: string;
 }
 
-// Static placeholder — will be dynamic (from DB) later
-const QUOTE = "Your health, our priority — trusted care for every family.";
+// Fallback content used when the pharmacy hasn't customised a field
+const FALLBACK_SUBTITLE    = "Personalized care for you and your family, right in your neighbourhood.";
+const FALLBACK_QUOTE       = "Your health, our priority — trusted care for every family.";
+const FALLBACK_DESCRIPTION = "We are a trusted community pharmacy committed to providing personalized, compassionate care to every patient who walks through our doors. Our team is dedicated to your health and wellbeing — from filling prescriptions quickly and accurately, to offering expert consultations and advice.";
 
-// Static placeholder — will be dynamic (from DB) later
-const TRUST_STATS = [
-  { icon: Clock, value: "15+",     label: "Years serving the community" },
-  { icon: Users, value: "15,000+", label: "Patients served" },
-  { icon: Award, value: "#1",      label: "Rated pharmacy in the city" },
-] as const;
+const FALLBACK_STATS: [StatCard, StatCard, StatCard] = [
+  { value: "15+",     label: "Years serving the community" },
+  { value: "15,000+", label: "Patients served" },
+  { value: "#1",      label: "Rated pharmacy in the city" },
+];
+
+// Icons mapped to stat position (1→Clock, 2→Users, 3→Award)
+const STAT_ICONS = [Clock, Users, Award];
 
 export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -56,6 +72,19 @@ export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
     pharmacy.service_delivery      && { label: "Home Delivery",           icon: Truck,       color: "text-purple-600", bg: "bg-purple-50" },
     pharmacy.service_consultation  && { label: "Pharmacist Consultation", icon: Stethoscope, color: "text-teal-600",   bg: "bg-teal-50"   },
   ].filter(Boolean) as Array<{ label: string; icon: React.ElementType; color: string; bg: string }>;
+
+  // Resolve dynamic content with fallbacks
+  const heroImage    = pharmacy.hero_image_url  || "/images/hero.png";
+  const heroTitle    = pharmacy.hero_title      || pharmacy.display_name;
+  const heroSubtitle = pharmacy.hero_subtitle   || FALLBACK_SUBTITLE;
+  const aboutHeading = pharmacy.about_heading   || `Caring for ${pharmacy.city} since day one`;
+  const aboutDesc    = pharmacy.about_description || FALLBACK_DESCRIPTION;
+
+  const rawStats     = pharmacy.landing_stats;
+  const hasStats     = rawStats && rawStats.length > 0;
+  const stats: [StatCard, StatCard, StatCard] = hasStats
+    ? [rawStats[0] ?? FALLBACK_STATS[0], rawStats[1] ?? FALLBACK_STATS[1], rawStats[2] ?? FALLBACK_STATS[2]]
+    : FALLBACK_STATS;
 
   return (
     <div className="min-h-screen bg-[#f8fffe]">
@@ -141,7 +170,7 @@ export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
             <span className="text-sm font-extrabold text-[#0d1f1c] truncate">{pharmacy.display_name}</span>
           </div>
 
-          {/* Phone — social icons will replace this when available (dynamic later) */}
+          {/* Phone — social icons will replace when available */}
           <a
             href={`tel:${pharmacy.phone}`}
             className="flex items-center gap-2 text-sm font-semibold text-[#2a9d8f] hover:text-[#21867a] transition-colors no-underline shrink-0"
@@ -154,10 +183,9 @@ export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
 
       {/* ── 3. Hero Section ─────────────────────────────────────────── */}
       <section className="relative min-h-[480px] md:min-h-[580px] flex items-end">
-        {/* Background — pharmacy hero image (dynamic later) */}
         <div className="absolute inset-0">
           <img
-            src="/images/hero.png"
+            src={heroImage}
             alt=""
             className="w-full h-full object-cover"
           />
@@ -169,17 +197,15 @@ export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
             Your trusted pharmacy
           </p>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-4">
-            {pharmacy.display_name}
+            {heroTitle}
           </h1>
-          {/* Tagline — dynamic later */}
           <p className="text-white/80 text-lg md:text-xl font-medium mb-8 max-w-xl">
-            Personalized care for you and your family, right in your neighbourhood.
+            {heroSubtitle}
           </p>
 
-          {/* Quote — dynamic later */}
           <blockquote className="flex items-start gap-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 max-w-lg">
             <Quote className="w-5 h-5 text-[#2a9d8f] shrink-0 mt-0.5" />
-            <p className="text-white/90 text-sm italic leading-relaxed">{QUOTE}</p>
+            <p className="text-white/90 text-sm italic leading-relaxed">{FALLBACK_QUOTE}</p>
           </blockquote>
         </div>
       </section>
@@ -193,16 +219,8 @@ export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
             <div className="space-y-8">
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-[#2a9d8f] mb-3">About Us</p>
-                <h2 className="text-2xl font-extrabold text-[#0d1f1c] mb-3">
-                  Caring for {pharmacy.city} since day one
-                </h2>
-                {/* Description — dynamic later */}
-                <p className="text-[#6b8280] leading-relaxed">
-                  We are a trusted community pharmacy committed to providing personalized,
-                  compassionate care to every patient who walks through our doors. Our team
-                  is dedicated to your health and wellbeing — from filling prescriptions
-                  quickly and accurately, to offering expert consultations and advice.
-                </p>
+                <h2 className="text-2xl font-extrabold text-[#0d1f1c] mb-3">{aboutHeading}</h2>
+                <p className="text-[#6b8280] leading-relaxed">{aboutDesc}</p>
               </div>
 
               {services.length > 0 && (
@@ -232,22 +250,25 @@ export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
               </div>
             </div>
 
-            {/* Right: Trust stats — dynamic later */}
+            {/* Right: Trust stats */}
             <div className="grid grid-cols-1 gap-5">
-              {TRUST_STATS.map(({ icon: Icon, value, label }) => (
-                <div
-                  key={label}
-                  className="flex items-center gap-5 bg-[#f8fffe] rounded-2xl border border-[#e2efed] p-6"
-                >
-                  <div className="w-12 h-12 rounded-2xl bg-[#e0f5f2] flex items-center justify-center shrink-0">
-                    <Icon className="w-6 h-6 text-[#2a9d8f]" />
+              {stats.map(({ value, label }, i) => {
+                const Icon = STAT_ICONS[i];
+                return (
+                  <div
+                    key={i}
+                    className="flex items-center gap-5 bg-[#f8fffe] rounded-2xl border border-[#e2efed] p-6"
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-[#e0f5f2] flex items-center justify-center shrink-0">
+                      <Icon className="w-6 h-6 text-[#2a9d8f]" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-extrabold text-[#0d1f1c]">{value}</p>
+                      <p className="text-sm text-[#6b8280] mt-0.5">{label}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-extrabold text-[#0d1f1c]">{value}</p>
-                    <p className="text-sm text-[#6b8280] mt-0.5">{label}</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

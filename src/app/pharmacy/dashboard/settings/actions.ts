@@ -134,6 +134,59 @@ export async function updatePharmacistAction(
   return { error: null };
 }
 
+export async function updateLandingPageAction(
+  fd: FormData
+): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+  const admin    = createAdminClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const heroTitle        = (fd.get("heroTitle")        as string) || null;
+  const heroSubtitle     = (fd.get("heroSubtitle")     as string) || null;
+  const aboutHeading     = (fd.get("aboutHeading")     as string) || null;
+  const aboutDescription = (fd.get("aboutDescription") as string) || null;
+  const statsRaw         = fd.get("landingStats")      as string | null;
+  const landingStats     = statsRaw ? JSON.parse(statsRaw) : null;
+
+  let heroImageUrl: string | undefined;
+  const heroImageFile = fd.get("heroImageFile") as File | null;
+  if (heroImageFile && heroImageFile.size > 0) {
+    const ext  = heroImageFile.name.split(".").pop() ?? "jpg";
+    const path = `${user.id}/hero-${Date.now()}.${ext}`;
+    const { error: uploadErr } = await admin.storage
+      .from("pharmacy-hero-images")
+      .upload(path, await heroImageFile.arrayBuffer(), { contentType: heroImageFile.type });
+    if (!uploadErr) {
+      const { data: { publicUrl } } = admin.storage
+        .from("pharmacy-hero-images")
+        .getPublicUrl(path);
+      heroImageUrl = publicUrl;
+    }
+  }
+
+  const updateData: Record<string, unknown> = {
+    hero_title:        heroTitle,
+    hero_subtitle:     heroSubtitle,
+    about_heading:     aboutHeading,
+    about_description: aboutDescription,
+    landing_stats:     landingStats,
+  };
+
+  if (heroImageUrl) updateData.hero_image_url = heroImageUrl;
+
+  const { error } = await supabase
+    .from("pharmacies")
+    .update(updateData)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/pharmacy/dashboard/settings");
+  return { error: null };
+}
+
 export async function changePasswordAction(
   fd: FormData
 ): Promise<{ error: string | null }> {

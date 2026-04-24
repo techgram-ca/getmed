@@ -131,6 +131,14 @@ export default function PharmacyCard({ pharmacy: ph, index, isActive, onMouseEnt
           </div>
         </div>
       </div>
+
+      {/* CTA */}
+      <div className="mt-3">
+        <span className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#2a9d8f] text-white text-xs font-bold hover:bg-[#21867a] transition-colors">
+          <ShoppingBag className="w-3.5 h-3.5" />
+          Order Now
+        </span>
+      </div>
     </a>
   );
 }
