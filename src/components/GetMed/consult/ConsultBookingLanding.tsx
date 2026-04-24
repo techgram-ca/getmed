@@ -112,12 +112,16 @@ function PharmacistInfoCard({ pharmacist }: { pharmacist: Pharmacist }) {
         </div>
       </div>
 
-      {pharmacist.consultation_fee != null && (
-        <div className="bg-[#f0fbf9] rounded-xl p-3 flex items-center justify-between">
-          <p className="text-xs text-[#6b8280]">Consultation Fee</p>
+      <div className="bg-[#f0fbf9] rounded-xl p-3 flex items-center justify-between">
+        <p className="text-xs text-[#6b8280]">Consultation Fee</p>
+        {pharmacist.consultation_fee && pharmacist.consultation_fee > 0 ? (
           <p className="text-base font-extrabold text-[#2a9d8f]">${pharmacist.consultation_fee.toFixed(2)}</p>
-        </div>
-      )}
+        ) : (
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-sm font-bold border border-emerald-200">
+            Free
+          </span>
+        )}
+      </div>
 
       {pharmacist.consultation_modes && pharmacist.consultation_modes.length > 0 && (
         <div>

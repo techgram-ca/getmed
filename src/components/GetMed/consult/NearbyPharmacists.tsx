@@ -79,12 +79,20 @@ function PharmacistCard({ ph }: { ph: NearbyPharmacy }) {
                   </p>
                 )}
               </div>
-              {ph.pharmacist?.consultation_fee != null && (
+              {ph.pharmacist != null && (
                 <div className="text-right shrink-0">
-                  <p className="text-lg font-extrabold text-[#0d1f1c]">
-                    ${ph.pharmacist.consultation_fee.toFixed(2)}
-                  </p>
-                  <p className="text-[10px] text-[#6b8280]">per consult</p>
+                  {ph.pharmacist.consultation_fee && ph.pharmacist.consultation_fee > 0 ? (
+                    <>
+                      <p className="text-lg font-extrabold text-[#0d1f1c]">
+                        ${ph.pharmacist.consultation_fee.toFixed(2)}
+                      </p>
+                      <p className="text-[10px] text-[#6b8280]">per consult</p>
+                    </>
+                  ) : (
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
+                      Free
+                    </span>
+                  )}
                 </div>
               )}
             </div>

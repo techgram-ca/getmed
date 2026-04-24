@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeftRight,
@@ -9,14 +6,12 @@ import {
   FileText,
   HeartPulse,
   MapPin,
-  Menu,
   Phone,
   Quote,
   ShoppingBag,
   Stethoscope,
   Truck,
   Users,
-  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -48,6 +43,7 @@ interface Pharmacy {
 interface Props {
   pharmacy: Pharmacy;
   slug: string;
+  consultationFee: number | null;
 }
 
 // Fallback content used when the pharmacy hasn't customised a field
@@ -64,8 +60,8 @@ const FALLBACK_STATS: [StatCard, StatCard, StatCard] = [
 // Icons mapped to stat position (1→Clock, 2→Users, 3→Award)
 const STAT_ICONS = [Clock, Users, Award];
 
-export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
-  const [mobileOpen, setMobileOpen] = useState(false);
+export default function PharmacyPublicPage({ pharmacy, slug, consultationFee }: Props) {
+  const consultLabel = (!consultationFee || consultationFee === 0) ? "Free Consultation" : "Consult Now";
 
   const services = [
     pharmacy.service_online_orders && { label: "Online Orders",           icon: ShoppingBag, color: "text-blue-600",   bg: "bg-blue-50"   },
@@ -92,8 +88,7 @@ export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
 
       {/* ── 1. Global GetMed Navbar ─────────────────────────────────── */}
       <nav className="sticky top-0 z-50 bg-[#f8fffe]/90 backdrop-blur-[16px] border-b border-[#e2efed]">
-        <div className="max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between">
-
+        <div className="max-w-[1200px] mx-auto px-6 h-16 flex items-center">
           <Link href="/" className="flex items-center gap-2.5 no-underline shrink-0">
             <div className="w-9 h-9 rounded-[10px] bg-[#2a9d8f] flex items-center justify-center">
               <HeartPulse className="w-5 h-5 text-white" />
@@ -102,62 +97,14 @@ export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
               Get<span className="text-[#2a9d8f]">Med</span>
             </span>
           </Link>
-
-          <ul className="hidden md:flex items-center gap-8 list-none m-0 p-0">
-            <li>
-              <a href="/#how-it-works" className="text-sm font-medium text-[#6b8280] hover:text-[#0d1f1c] transition-colors no-underline">
-                How It Works
-              </a>
-            </li>
-            <li>
-              <a href="/#why-choose" className="text-sm font-medium text-[#6b8280] hover:text-[#0d1f1c] transition-colors no-underline">
-                Why GetMed
-              </a>
-            </li>
-            <li>
-              <Link href="/consult" className="text-sm font-medium text-[#2a9d8f] hover:text-[#21867a] transition-colors no-underline">
-                Consult a Pharmacist
-              </Link>
-            </li>
-            <li>
-              <Button asChild size="default">
-                <Link href="/search">Get Started</Link>
-              </Button>
-            </li>
-          </ul>
-
-          <button
-            className="md:hidden p-2 text-[#0d1f1c] bg-transparent border-none cursor-pointer"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Menu"
-          >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
         </div>
-
-        {mobileOpen && (
-          <div className="md:hidden border-t border-[#e2efed] bg-[#f8fffe] px-6 py-4 flex flex-col gap-4">
-            <a href="/#how-it-works" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-[#6b8280] no-underline">
-              How It Works
-            </a>
-            <a href="/#why-choose" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-[#6b8280] no-underline">
-              Why GetMed
-            </a>
-            <Link href="/consult" onClick={() => setMobileOpen(false)} className="text-sm font-medium text-[#2a9d8f] no-underline">
-              Consult a Pharmacist
-            </Link>
-            <Button asChild size="default" className="w-fit">
-              <Link href="/search" onClick={() => setMobileOpen(false)}>Get Started</Link>
-            </Button>
-          </div>
-        )}
       </nav>
 
       {/* ── 2. Pharmacy Sub-Header ──────────────────────────────────── */}
       <div className="sticky top-16 z-40 bg-white border-b border-[#e2efed] shadow-sm">
         <div className="max-w-[1200px] mx-auto px-6 h-14 flex items-center justify-between gap-4">
 
-          {/* Pharmacy logo (3:1 horizontal) + name */}
+          {/* Pharmacy logo + name */}
           <div className="flex items-center gap-3 min-w-0">
             <div className="shrink-0 h-9 w-[108px] rounded-xl bg-[#e0f5f2] border border-[#e2efed] flex items-center justify-center overflow-hidden">
               {pharmacy.logo_url ? (
@@ -171,14 +118,30 @@ export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
             <span className="text-sm font-extrabold text-[#0d1f1c] truncate">{pharmacy.display_name}</span>
           </div>
 
-          {/* Phone — social icons will replace when available */}
-          <a
-            href={`tel:${pharmacy.phone}`}
-            className="flex items-center gap-2 text-sm font-semibold text-[#2a9d8f] hover:text-[#21867a] transition-colors no-underline shrink-0"
-          >
-            <Phone className="w-4 h-4" />
-            <span className="hidden sm:inline">{pharmacy.phone}</span>
-          </a>
+          {/* Action links */}
+          <div className="flex items-center gap-5 shrink-0">
+            <a
+              href="#quick-actions"
+              className="text-sm font-semibold text-[#2a9d8f] hover:text-[#21867a] transition-colors no-underline"
+            >
+              Order Now
+            </a>
+            {pharmacy.service_consultation && (
+              <Link
+                href={`/consult/${slug}`}
+                className="text-sm font-semibold text-[#2a9d8f] hover:text-[#21867a] transition-colors no-underline"
+              >
+                {consultLabel}
+              </Link>
+            )}
+            <a
+              href={`tel:${pharmacy.phone}`}
+              className="flex items-center gap-1.5 text-sm font-semibold text-[#0d1f1c] hover:text-[#2a9d8f] transition-colors no-underline"
+            >
+              <Phone className="w-4 h-4" />
+              Contact
+            </a>
+          </div>
         </div>
       </div>
 
@@ -276,7 +239,7 @@ export default function PharmacyPublicPage({ pharmacy, slug }: Props) {
       </section>
 
       {/* ── 5. Action Cards ─────────────────────────────────────────── */}
-      <section className="py-16">
+      <section id="quick-actions" className="py-16 scroll-mt-32">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center mb-10">
             <p className="text-xs font-bold uppercase tracking-widest text-[#2a9d8f] mb-3">Quick Actions</p>
