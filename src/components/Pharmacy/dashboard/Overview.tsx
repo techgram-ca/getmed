@@ -4,6 +4,7 @@ import {
   ArrowRight,
   Clock,
   PackageCheck,
+  Plus,
   TrendingUp,
   Users,
 } from "lucide-react";
@@ -83,13 +84,22 @@ export default function Overview({ pharmacy, orders }: Props) {
   return (
     <div className="p-6 lg:p-8 max-w-[1100px]">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-[1.5rem] font-extrabold text-[#0d1f1c] tracking-tight">
-          Good morning, {pharmacy.contact_name.split(" ")[0]} 👋
-        </h1>
-        <p className="text-sm text-[#6b8280] mt-1">
-          {pharmacy.display_name} &middot; {pharmacy.city}, {pharmacy.province}
-        </p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-[1.5rem] font-extrabold text-[#0d1f1c] tracking-tight">
+            Good morning, {pharmacy.contact_name.split(" ")[0]} 👋
+          </h1>
+          <p className="text-sm text-[#6b8280] mt-1">
+            {pharmacy.display_name} &middot; {pharmacy.city}, {pharmacy.province}
+          </p>
+        </div>
+        <Link
+          href="/pharmacy/dashboard/orders/new"
+          className="no-underline shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2a9d8f] text-white text-sm font-bold hover:bg-[#21867a] transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Add Order
+        </Link>
       </div>
 
       {/* Pending approval banner */}

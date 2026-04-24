@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Plus } from "lucide-react";
 import Sidebar from "@/components/Pharmacy/dashboard/Sidebar";
 import OrderStatusChanger from "@/components/Pharmacy/dashboard/OrderStatusChanger";
 import { createClient } from "@/lib/supabase/server";
@@ -126,9 +127,18 @@ export default async function PharmacyOrdersPage({
 
       <main className="flex-1 lg:pt-0 pt-14">
         <div className="p-6 lg:p-8 max-w-[1300px]">
-          <div className="mb-6">
-            <h1 className="text-[1.5rem] font-extrabold text-[#0d1f1c] tracking-tight">Orders</h1>
-            <p className="text-sm text-[#6b8280] mt-1">Manage and track all pharmacy orders.</p>
+          <div className="mb-6 flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-[1.5rem] font-extrabold text-[#0d1f1c] tracking-tight">Orders</h1>
+              <p className="text-sm text-[#6b8280] mt-1">Manage and track all pharmacy orders.</p>
+            </div>
+            <Link
+              href="/pharmacy/dashboard/orders/new"
+              className="no-underline shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2a9d8f] text-white text-sm font-bold hover:bg-[#21867a] transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Add Order
+            </Link>
           </div>
 
           <section className="grid grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
