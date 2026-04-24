@@ -93,6 +93,7 @@ export async function submitOrderAction(
     address:       deliveryType === "delivery" ? (address || null) : null,
     details,
     file_urls:     allFilePaths,
+    order_source:  "online",
   }).select("id").single();
 
   if (error) return { error: error.message };

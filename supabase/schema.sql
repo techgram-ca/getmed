@@ -652,6 +652,14 @@ values ('sms_enabled', 'false')
 on conflict (key) do nothing;
 
 -- ============================================================
+-- MIGRATION: Add order_source column
+-- ============================================================
+
+alter table public.orders
+  add column if not exists order_source text not null default 'online'
+    check (order_source in ('online', 'manual'));
+
+-- ============================================================
 -- MIGRATION: Proof of delivery
 -- ============================================================
 
