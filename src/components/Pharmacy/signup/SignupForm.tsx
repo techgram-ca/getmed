@@ -203,11 +203,13 @@ export default function SignupForm() {
       {/* Form body */}
       <form onSubmit={handleSubmit} className="max-w-3xl mx-auto px-6 py-8 space-y-6">
         <BasicInfo
+        step={1}
           value={form.basic}
           onChange={(v) => setForm((prev) => ({ ...prev, basic: v }))}
         />
 
         <PharmacyDetails
+        step={2}
           value={form.pharmacy}
           onChange={(v) => setForm((prev) => ({ ...prev, pharmacy: v }))}
         />
@@ -219,12 +221,14 @@ export default function SignupForm() {
         />
 
         <Services
+        step={4}
           value={form.services}
           onChange={(v) => setForm((prev) => ({ ...prev, services: v }))}
         />
 
         {form.services.consultation && (
           <PharmacistDetails
+          step={5}
             value={form.pharmacist}
             onChange={(v) => setForm((prev) => ({ ...prev, pharmacist: v }))}
           />

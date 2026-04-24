@@ -40,9 +40,10 @@ export const DEFAULT_PHARMACY_DETAILS: PharmacyDetailsValue = {
 interface Props {
   value: PharmacyDetailsValue;
   onChange: (v: PharmacyDetailsValue) => void;
+  step: number;
 }
 
-export default function PharmacyDetails({ value, onChange }: Props) {
+export default function PharmacyDetails({ value, onChange, step }: Props) {
   function set<K extends keyof PharmacyDetailsValue>(key: K, v: PharmacyDetailsValue[K]) {
     onChange({ ...value, [key]: v });
   }
@@ -56,7 +57,7 @@ export default function PharmacyDetails({ value, onChange }: Props) {
 
   return (
     <SectionCard
-      step={2}
+      step={step}
       title="Pharmacy Details"
       description="Legal and operational information about your pharmacy."
       icon={Building2}

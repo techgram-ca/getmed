@@ -15,9 +15,10 @@ export interface BasicInfoValue {
 interface Props {
   value: BasicInfoValue;
   onChange: (v: BasicInfoValue) => void;
+  step: number;
 }
 
-export default function BasicInfo({ value, onChange }: Props) {
+export default function BasicInfo({ value, onChange, step }: Props) {
   const [showPassword, setShowPassword] = useState(false);
 
   function set<K extends keyof BasicInfoValue>(key: K, v: BasicInfoValue[K]) {
@@ -26,7 +27,7 @@ export default function BasicInfo({ value, onChange }: Props) {
 
   return (
     <SectionCard
-      step={1}
+      step={step}
       title="Basic Account Info"
       description="This will be your login credentials for the pharmacy portal."
       icon={UserCircle}

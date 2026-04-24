@@ -37,9 +37,10 @@ export const DEFAULT_PHARMACIST: PharmacistValue = {
 interface Props {
   value: PharmacistValue;
   onChange: (v: PharmacistValue) => void;
+  step: number;
 }
 
-export default function PharmacistDetails({ value, onChange }: Props) {
+export default function PharmacistDetails({ value, onChange,step }: Props) {
   function set<K extends keyof PharmacistValue>(key: K, v: PharmacistValue[K]) {
     onChange({ ...value, [key]: v });
   }
@@ -50,7 +51,7 @@ export default function PharmacistDetails({ value, onChange }: Props) {
 
   return (
     <SectionCard
-      step={5}
+      step={step}
       title="Pharmacist / Professional Profile"
       description="Required since you selected Online Pharmacy Consultation."
       icon={Stethoscope}

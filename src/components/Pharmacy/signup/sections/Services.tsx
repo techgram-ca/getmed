@@ -11,9 +11,10 @@ export interface ServicesValue {
 interface Props {
   value: ServicesValue;
   onChange: (v: ServicesValue) => void;
+  step: number;
 }
 
-export default function Services({ value, onChange }: Props) {
+export default function Services({ value, onChange, step }: Props) {
   function toggle(key: keyof ServicesValue) {
     onChange({ ...value, [key]: !value[key] });
   }
@@ -41,7 +42,7 @@ export default function Services({ value, onChange }: Props) {
 
   return (
     <SectionCard
-      step={3}
+      step={step}
       title="Services Offered"
       description="Select all the services your pharmacy will provide through GetMed."
       icon={Layers}
