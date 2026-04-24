@@ -184,6 +184,17 @@ export async function updateLandingPageAction(
   if (error) return { error: error.message };
 
   revalidatePath("/pharmacy/dashboard/settings");
+
+  // Bust the public landing page cache for this pharmacy
+  const { data: slugRow } = await supabase
+    .from("pharmacies")
+    .select("url_slug")
+    .eq("user_id", user.id)
+    .single();
+  if (slugRow?.url_slug) {
+    revalidatePath(`/${slugRow.url_slug}`);
+  }
+
   return { error: null };
 }
 
