@@ -70,6 +70,9 @@ export async function pharmacySignupAction(
   const logoFile        = fd.get("logoFile")        as File | null;
   const licenseFile     = fd.get("licenseFile")     as File | null;
   const pharmacistPhoto = fd.get("pharmacistPhoto") as File | null;
+  const heroImageFile   = fd.get("heroImageFile")   as File | null;
+  const landingJson     = fd.get("landing")         as string | null;
+  const landing         = landingJson ? JSON.parse(landingJson) : {};
 
   // ── 1. Create auth user ───────────────────────────────────────
   const { data: authData, error: authError } =
@@ -111,7 +114,27 @@ export async function pharmacySignupAction(
     }
   }
 
-  // ── 2b. Upload pharmacy license ───────────────────────────────
+  // ── 2b. Upload hero image ─────────────────────────────────────
+  let heroImageUrl: string | null = null;
+
+  if (heroImageFile && heroImageFile.size > 0) {
+    const ext  = heroImageFile.name.split(".").pop() ?? "jpg";
+    const path = `${userId}/hero.${ext}`;
+
+    const { error: heroUploadError } = await supabase.storage
+      .from("pharmacy-hero-images")
+      .upload(path, await heroImageFile.arrayBuffer(), {
+        contentType: heroImageFile.type,
+        upsert: true,
+      });
+
+    if (!heroUploadError) {
+      const { data } = supabase.storage.from("pharmacy-hero-images").getPublicUrl(path);
+      heroImageUrl = data.publicUrl;
+    }
+  }
+
+  // ── 2c. Upload pharmacy license ───────────────────────────────
   let licenseStoragePath: string | null = null;
 
   if (licenseFile && licenseFile.size > 0) {
@@ -162,6 +185,13 @@ export async function pharmacySignupAction(
       service_online_orders: services.onlineOrders,
       service_delivery:     services.delivery,
       service_consultation: services.consultation,
+      // Landing page
+      hero_image_url:    heroImageUrl,
+      hero_title:        landing.heroTitle        || null,
+      hero_subtitle:     landing.heroSubtitle     || null,
+      about_heading:     landing.aboutHeading     || null,
+      about_description: landing.aboutDescription || null,
+      landing_stats:     landing.stats?.length ? landing.stats : null,
     })
     .select("id")
     .single();

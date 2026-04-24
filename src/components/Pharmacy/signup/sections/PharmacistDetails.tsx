@@ -50,7 +50,7 @@ export default function PharmacistDetails({ value, onChange }: Props) {
 
   return (
     <SectionCard
-      step={4}
+      step={5}
       title="Pharmacist / Professional Profile"
       description="Required since you selected Online Pharmacy Consultation."
       icon={Stethoscope}

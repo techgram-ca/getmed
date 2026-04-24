@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Sidebar from "@/components/Pharmacy/dashboard/Sidebar";
 import PharmacyDetailsForm from "@/components/Pharmacy/dashboard/settings/PharmacyDetailsForm";
 import PharmacistDetailsForm from "@/components/Pharmacy/dashboard/settings/PharmacistDetailsForm";
+import LandingPageForm from "@/components/Pharmacy/dashboard/settings/LandingPageForm";
 import PasswordChangeForm from "@/components/Pharmacy/dashboard/settings/PasswordChangeForm";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -21,7 +22,7 @@ export default async function PharmacySettingsPage() {
   const { data: pharmacy, error } = await supabase
     .from("pharmacies")
     .select(
-      "id, display_name, contact_name, phone, legal_name, full_address, city, province, postal_code, license_number, logo_url, service_online_orders, service_delivery, service_consultation, payment_methods, status"
+      "id, display_name, contact_name, phone, legal_name, full_address, city, province, postal_code, license_number, logo_url, service_online_orders, service_delivery, service_consultation, payment_methods, status, hero_image_url, hero_title, hero_subtitle, about_heading, about_description, landing_stats"
     )
     .eq("user_id", user.id)
     .single();
@@ -84,6 +85,20 @@ export default async function PharmacySettingsPage() {
               <PharmacistDetailsForm pharmacist={pharmacist ?? null} />
             </section>
           )}
+
+          {/* Landing page customisation */}
+          <section className="bg-white rounded-2xl border border-[#e2efed] shadow-sm p-5 mb-6">
+            <LandingPageForm
+              pharmacy={{
+                hero_image_url:    pharmacy.hero_image_url    ?? null,
+                hero_title:        pharmacy.hero_title        ?? null,
+                hero_subtitle:     pharmacy.hero_subtitle     ?? null,
+                about_heading:     pharmacy.about_heading     ?? null,
+                about_description: pharmacy.about_description ?? null,
+                landing_stats:     pharmacy.landing_stats     ?? null,
+              }}
+            />
+          </section>
 
           {/* Password change */}
           <section className="bg-white rounded-2xl border border-[#e2efed] shadow-sm p-5">

@@ -18,12 +18,17 @@ import PharmacistDetails, {
   DEFAULT_PHARMACIST,
   type PharmacistValue,
 } from "./sections/PharmacistDetails";
+import LandingPage, {
+  DEFAULT_LANDING_PAGE,
+  type LandingPageValue,
+} from "./sections/LandingPage";
 
 interface FormState {
   basic: BasicInfoValue;
   pharmacy: PharmacyDetailsValue;
   services: ServicesValue;
   pharmacist: PharmacistValue;
+  landing: LandingPageValue;
 }
 
 const INITIAL: FormState = {
@@ -31,6 +36,7 @@ const INITIAL: FormState = {
   pharmacy: DEFAULT_PHARMACY_DETAILS,
   services: { onlineOrders: false, delivery: false, consultation: false },
   pharmacist: DEFAULT_PHARMACIST,
+  landing: DEFAULT_LANDING_PAGE,
 };
 
 export default function SignupForm() {
@@ -68,6 +74,21 @@ export default function SignupForm() {
 
       // ── Services ───────────────────────────────────────────────
       fd.append("services", JSON.stringify(form.services));
+
+      // ── Landing page content ───────────────────────────────────
+      fd.append(
+        "landing",
+        JSON.stringify({
+          heroTitle:        form.landing.heroTitle,
+          heroSubtitle:     form.landing.heroSubtitle,
+          aboutHeading:     form.landing.aboutHeading,
+          aboutDescription: form.landing.aboutDescription,
+          stats:            form.landing.stats.filter((s) => s.value || s.label),
+        })
+      );
+      if (form.landing.heroImageFile) {
+        fd.append("heroImageFile", form.landing.heroImageFile);
+      }
 
       // ── Files ─────────────────────────────────────────────────
       if (form.pharmacy.logoFile) {
@@ -162,6 +183,7 @@ export default function SignupForm() {
               "Basic Info",
               "Pharmacy Details",
               "Services",
+              "Landing Page",
               ...(form.services.consultation ? ["Pharmacist Profile"] : []),
             ].map((label, i) => (
               <span
@@ -193,6 +215,12 @@ export default function SignupForm() {
         <Services
           value={form.services}
           onChange={(v) => setForm((prev) => ({ ...prev, services: v }))}
+        />
+
+        <LandingPage
+          step={4}
+          value={form.landing}
+          onChange={(v) => setForm((prev) => ({ ...prev, landing: v }))}
         />
 
         {form.services.consultation && (
