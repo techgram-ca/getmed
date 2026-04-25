@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import Sidebar from "@/components/Pharmacy/dashboard/Sidebar";
 import OrderStatusChanger from "@/components/Pharmacy/dashboard/OrderStatusChanger";
 import { createClient } from "@/lib/supabase/server";
@@ -128,6 +128,14 @@ export default async function PharmacyOrdersPage({
 
       <main className="flex-1 lg:pt-0 pt-14">
         <div className="p-6 lg:p-8 max-w-[1300px]">
+          <Link
+            href="/pharmacy/dashboard"
+            className="inline-flex items-center gap-1.5 text-sm text-[#6b8280] hover:text-[#0d1f1c] transition-colors no-underline mb-4"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Dashboard
+          </Link>
+
           <div className="mb-6 flex items-start justify-between gap-4">
             <div>
               <h1 className="text-[1.5rem] font-extrabold text-[#0d1f1c] tracking-tight">Orders</h1>
