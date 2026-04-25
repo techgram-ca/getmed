@@ -86,16 +86,16 @@ function FaqItem({ q, a }: { q: string; a: string }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left bg-white hover:bg-[#f8fffe] transition-colors"
+        className="w-full flex items-center justify-between gap-6 px-7 py-6 text-left bg-white hover:bg-[#f8fffe] transition-colors"
       >
-        <span className="text-sm font-semibold text-[#0d1f1c]">{q}</span>
+        <span className="text-base font-semibold text-[#0d1f1c] leading-snug">{q}</span>
         {open
-          ? <ChevronUp className="w-4 h-4 text-[#2a9d8f] shrink-0" />
-          : <ChevronDown className="w-4 h-4 text-[#6b8280] shrink-0" />}
+          ? <ChevronUp className="w-5 h-5 text-[#2a9d8f] shrink-0" />
+          : <ChevronDown className="w-5 h-5 text-[#6b8280] shrink-0" />}
       </button>
       {open && (
-        <div className="px-5 pb-5 pt-1 bg-white border-t border-[#e2efed]">
-          <p className="text-sm text-[#6b8280] leading-relaxed">{a}</p>
+        <div className="px-7 pb-7 pt-2 bg-white border-t border-[#e2efed]">
+          <p className="text-[0.95rem] text-[#6b8280] leading-relaxed">{a}</p>
         </div>
       )}
     </div>
@@ -142,14 +142,14 @@ export default function FaqPage() {
       </section>
 
       {/* FAQ accordion sections */}
-      <section className="max-w-[800px] mx-auto px-6 pb-20">
-        <div className="space-y-10">
+      <section className="max-w-[1200px] mx-auto px-6 pb-20">
+        <div className="space-y-12">
           {FAQS.map(({ category, items }) => (
             <div key={category}>
-              <h2 className="text-xs font-bold uppercase tracking-widest text-[#2a9d8f] mb-4">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-[#2a9d8f] mb-5">
                 {category}
               </h2>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {items.map((item) => (
                   <FaqItem key={item.q} q={item.q} a={item.a} />
                 ))}
