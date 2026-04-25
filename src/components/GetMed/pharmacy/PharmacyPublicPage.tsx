@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeftRight,
@@ -6,12 +9,14 @@ import {
   FileText,
   HeartPulse,
   MapPin,
+  Menu,
   Phone,
   Quote,
   ShoppingBag,
   Stethoscope,
   Truck,
   Users,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -61,6 +66,7 @@ const FALLBACK_STATS: [StatCard, StatCard, StatCard] = [
 const STAT_ICONS = [Clock, Users, Award];
 
 export default function PharmacyPublicPage({ pharmacy, slug, consultationFee }: Props) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const consultLabel = (!consultationFee || consultationFee === 0) ? "Free Consultation" : "Consult Now";
 
   const services = [
@@ -106,7 +112,7 @@ export default function PharmacyPublicPage({ pharmacy, slug, consultationFee }: 
 
           {/* Pharmacy logo + name */}
           <div className="flex items-center gap-3 min-w-0">
-            <div className="shrink-0 h-9 w-[108px] rounded-xl bg-[#e0f5f2] border border-[#e2efed] flex items-center justify-center overflow-hidden">
+            <div className={`shrink-0 h-9 w-[108px] rounded-xl flex items-center justify-center overflow-hidden ${pharmacy.logo_url ? "" : "bg-[#e0f5f2] border border-[#e2efed]"}`}>
               {pharmacy.logo_url ? (
                 <img src={pharmacy.logo_url} alt={pharmacy.display_name} className="w-full h-full object-contain" />
               ) : (
@@ -118,8 +124,8 @@ export default function PharmacyPublicPage({ pharmacy, slug, consultationFee }: 
             <span className="text-sm font-extrabold text-[#0d1f1c] truncate">{pharmacy.display_name}</span>
           </div>
 
-          {/* Action links */}
-          <div className="flex items-center gap-5 shrink-0">
+          {/* Desktop action links */}
+          <div className="hidden md:flex items-center gap-5 shrink-0">
             <a
               href="#quick-actions"
               className="text-sm font-semibold text-[#2a9d8f] hover:text-[#21867a] transition-colors no-underline"
@@ -142,7 +148,47 @@ export default function PharmacyPublicPage({ pharmacy, slug, consultationFee }: 
               Contact
             </a>
           </div>
+
+          {/* Mobile hamburger */}
+          <button
+            type="button"
+            className="md:hidden p-2 rounded-lg text-[#0d1f1c] hover:bg-[#f0fbf9] transition-colors"
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
+
+        {/* Mobile dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-[#e2efed] bg-white px-6 py-4 flex flex-col gap-4">
+            <a
+              href="#quick-actions"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-sm font-semibold text-[#2a9d8f] no-underline"
+            >
+              Order Now
+            </a>
+            {pharmacy.service_consultation && (
+              <Link
+                href={`/consult/${slug}`}
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-sm font-semibold text-[#2a9d8f] no-underline"
+              >
+                {consultLabel}
+              </Link>
+            )}
+            <a
+              href={`tel:${pharmacy.phone}`}
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-1.5 text-sm font-semibold text-[#0d1f1c] no-underline"
+            >
+              <Phone className="w-4 h-4" />
+              Contact
+            </a>
+          </div>
+        )}
       </div>
 
       {/* ── 3. Hero Section ─────────────────────────────────────────── */}
