@@ -1,18 +1,30 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { HeartPulse, Menu, X } from "lucide-react";
 
-const NAV_LINKS = [
-  { label: "Order Prescription", href: "/#get-started" },
-  { label: "Consult a Pharmacist", href: "/consult" },
-  { label: "About GetMed", href: "/about" },
-  { label: "FAQs", href: "/faq" },
-];
-
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const router   = useRouter();
+  const pathname = usePathname();
+
+  function handleOrderPrescription(e: React.MouseEvent) {
+    e.preventDefault();
+    setOpen(false);
+    if (pathname === "/") {
+      document.getElementById("hero-address-input")?.focus();
+    } else {
+      router.push("/?focus=address");
+    }
+  }
+
+  const regularLinks = [
+    { label: "Consult a Pharmacist", href: "/consult" },
+    { label: "About GetMed",         href: "/about"   },
+    { label: "FAQs",                 href: "/faq"     },
+  ];
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#f8fffe]/88 backdrop-blur-[16px] border-b border-[#e2efed]">
@@ -27,7 +39,16 @@ export default function Navbar() {
         </Link>
 
         <ul className="hidden md:flex items-center gap-8 list-none">
-          {NAV_LINKS.map(({ label, href }) => (
+          <li>
+            <a
+              href="/"
+              onClick={handleOrderPrescription}
+              className="text-sm font-medium text-[#2a9d8f] hover:text-[#0d1f1c] transition-colors no-underline cursor-pointer"
+            >
+              Order Prescription
+            </a>
+          </li>
+          {regularLinks.map(({ label, href }) => (
             <li key={label}>
               <Link
                 href={href}
@@ -50,7 +71,14 @@ export default function Navbar() {
 
       {open && (
         <div className="md:hidden border-t border-[#e2efed] bg-[#f8fffe] px-6 py-4 flex flex-col gap-4">
-          {NAV_LINKS.map(({ label, href }) => (
+          <a
+            href="/"
+            onClick={handleOrderPrescription}
+            className="text-sm font-medium text-[#2a9d8f] no-underline cursor-pointer"
+          >
+            Order Prescription
+          </a>
+          {regularLinks.map(({ label, href }) => (
             <Link
               key={label}
               href={href}

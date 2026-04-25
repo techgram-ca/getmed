@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
@@ -12,6 +12,16 @@ const HERO_IMG =
 export default function Hero() {
   const router = useRouter();
   const [place, setPlace] = useState<PlaceResult | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("focus") === "address") {
+      params.delete("focus");
+      const clean = params.toString();
+      window.history.replaceState({}, "", clean ? `/?${clean}` : "/");
+      setTimeout(() => document.getElementById("hero-address-input")?.focus(), 80);
+    }
+  }, []);
 
   function handleSearch() {
     if (!place) {

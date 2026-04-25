@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import {
   Award,
   Clock,
@@ -11,6 +12,7 @@ import {
   Stethoscope,
   User,
   Video,
+  X,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
@@ -184,6 +186,29 @@ interface Props {
 }
 
 export default function NearbyPharmacists({ pharmacies, radiusKm, searchAddress }: Props) {
+  const [cityFilter, setCityFilter] = useState("all");
+  const [langFilter, setLangFilter] = useState("all");
+
+  const allCities = useMemo(() => {
+    return [...new Set(pharmacies.map((p) => p.city))].sort();
+  }, [pharmacies]);
+
+  const allLanguages = useMemo(() => {
+    const langs = new Set<string>();
+    pharmacies.forEach((p) => p.pharmacist?.languages?.forEach((l) => langs.add(l)));
+    return [...langs].sort();
+  }, [pharmacies]);
+
+  const filtered = useMemo(() => {
+    return pharmacies.filter((p) => {
+      if (cityFilter !== "all" && p.city !== cityFilter) return false;
+      if (langFilter !== "all" && !p.pharmacist?.languages?.includes(langFilter)) return false;
+      return true;
+    });
+  }, [pharmacies, cityFilter, langFilter]);
+
+  const hasActiveFilter = cityFilter !== "all" || langFilter !== "all";
+
   if (pharmacies.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
@@ -213,21 +238,87 @@ export default function NearbyPharmacists({ pharmacies, radiusKm, searchAddress 
               Pharmacists near you
             </h1>
             <p className="text-sm text-[#6b8280] mt-1">
-              {pharmacies.length} pharmacist{pharmacies.length !== 1 ? "s" : ""} offering
+              {filtered.length} of {pharmacies.length} pharmacist{pharmacies.length !== 1 ? "s" : ""} offering
               consultations within {radiusKm} km
               {searchAddress ? ` of "${searchAddress}"` : ""}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-            {pharmacies.map((ph) => (
-              <PharmacistCard key={ph.id} ph={ph} />
-            ))}
-          </div>
+          {filtered.length > 0 ? (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+              {filtered.map((ph) => (
+                <PharmacistCard key={ph.id} ph={ph} />
+              ))}
+            </div>
+          ) : (
+            <div className="py-14 text-center">
+              <p className="text-sm text-[#6b8280]">No pharmacists match your filters.</p>
+              <button
+                type="button"
+                onClick={() => { setCityFilter("all"); setLangFilter("all"); }}
+                className="mt-3 text-xs font-semibold text-[#2a9d8f] hover:underline"
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ── Right: sticky sidebar ─────────────────────────── */}
         <aside className="lg:sticky lg:top-[73px] space-y-4">
+
+          {/* Filters */}
+          <div className="bg-white rounded-2xl border border-[#e2efed] shadow-sm p-5">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-xs font-bold text-[#0d1f1c] uppercase tracking-wider">Filters</p>
+              {hasActiveFilter && (
+                <button
+                  type="button"
+                  onClick={() => { setCityFilter("all"); setLangFilter("all"); }}
+                  className="flex items-center gap-1 text-[10px] font-semibold text-[#6b8280] hover:text-red-500 transition-colors"
+                >
+                  <X className="w-3 h-3" /> Clear
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              {/* City filter */}
+              <div>
+                <label className="block text-[11px] font-semibold text-[#6b8280] mb-1.5 flex items-center gap-1">
+                  <MapPin className="w-3 h-3 text-[#2a9d8f]" /> City
+                </label>
+                <select
+                  value={cityFilter}
+                  onChange={(e) => setCityFilter(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-[#e2efed] text-xs text-[#0d1f1c] bg-white focus:outline-none focus:border-[#2a9d8f] transition-colors"
+                >
+                  <option value="all">All cities</option>
+                  {allCities.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Language filter */}
+              <div>
+                <label className="block text-[11px] font-semibold text-[#6b8280] mb-1.5 flex items-center gap-1">
+                  <Languages className="w-3 h-3 text-[#2a9d8f]" /> Language
+                </label>
+                <select
+                  value={langFilter}
+                  onChange={(e) => setLangFilter(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-[#e2efed] text-xs text-[#0d1f1c] bg-white focus:outline-none focus:border-[#2a9d8f] transition-colors"
+                >
+                  <option value="all">All languages</option>
+                  {allLanguages.map((l) => (
+                    <option key={l} value={l}>{l}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
           {/* Search summary */}
           <div className="bg-white rounded-2xl border border-[#e2efed] shadow-sm p-5">
             <p className="text-xs font-bold text-[#0d1f1c] uppercase tracking-wider mb-3">
