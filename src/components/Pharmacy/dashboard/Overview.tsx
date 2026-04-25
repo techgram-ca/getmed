@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
+import RefreshButton from "@/components/shared/RefreshButton";
 
 interface Pharmacy {
   id: string;
@@ -93,13 +94,16 @@ export default function Overview({ pharmacy, orders }: Props) {
             {pharmacy.display_name} &middot; {pharmacy.city}, {pharmacy.province}
           </p>
         </div>
-        <Link
-          href="/pharmacy/dashboard/orders/new"
-          className="no-underline shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2a9d8f] text-white text-sm font-bold hover:bg-[#21867a] transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Add Order
-        </Link>
+        <div className="flex items-center gap-2 shrink-0">
+          <RefreshButton />
+          <Link
+            href="/pharmacy/dashboard/orders/new"
+            className="no-underline inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2a9d8f] text-white text-sm font-bold hover:bg-[#21867a] transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Order
+          </Link>
+        </div>
       </div>
 
       {/* Pending approval banner */}

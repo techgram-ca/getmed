@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Sidebar from "@/components/Pharmacy/dashboard/Sidebar";
+import RefreshButton from "@/components/shared/RefreshButton";
 
 export const metadata: Metadata = {
   title: "Consultations — GetMed Pharmacy Portal",
@@ -110,13 +111,16 @@ export default async function ConsultationsPage({
 
       <main className="flex-1 lg:pt-0 pt-14">
         <div className="p-6 lg:p-8 max-w-[1300px]">
-          <div className="mb-6">
-            <h1 className="text-[1.5rem] font-extrabold text-[#0d1f1c] tracking-tight">
-              Consultations
-            </h1>
-            <p className="text-sm text-[#6b8280] mt-1">
-              View and manage patient consultation requests.
-            </p>
+          <div className="mb-6 flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-[1.5rem] font-extrabold text-[#0d1f1c] tracking-tight">
+                Consultations
+              </h1>
+              <p className="text-sm text-[#6b8280] mt-1">
+                View and manage patient consultation requests.
+              </p>
+            </div>
+            <RefreshButton />
           </div>
 
           {/* Summary cards */}

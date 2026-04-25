@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import AdminSidebar from "@/components/Admin/dashboard/AdminSidebar";
 import AdminOrdersClient from "@/components/Admin/dashboard/AdminOrdersClient";
+import RefreshButton from "@/components/shared/RefreshButton";
 
 export const metadata: Metadata = { title: "Orders — GetMed Admin" };
 
@@ -38,9 +39,12 @@ export default async function AdminOrdersPage() {
       <AdminSidebar />
       <main className="flex-1 lg:pt-0 pt-14">
         <div className="p-6 lg:p-8 max-w-[1400px]">
-          <div className="mb-6">
-            <h1 className="text-[1.5rem] font-extrabold text-[#0d1f1c] tracking-tight">Orders</h1>
-            <p className="text-sm text-[#6b8280] mt-1">View and manage all orders. Filters apply instantly without reloading.</p>
+          <div className="mb-6 flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-[1.5rem] font-extrabold text-[#0d1f1c] tracking-tight">Orders</h1>
+              <p className="text-sm text-[#6b8280] mt-1">View and manage all orders. Filters apply instantly without reloading.</p>
+            </div>
+            <RefreshButton />
           </div>
 
           <AdminOrdersClient

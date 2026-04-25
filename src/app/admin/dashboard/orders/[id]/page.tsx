@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import AdminSidebar from "@/components/Admin/dashboard/AdminSidebar";
 import DeliveryProofSection, { type DeliveryProof } from "@/components/shared/DeliveryProofSection";
+import RefreshButton from "@/components/shared/RefreshButton";
 
 export const metadata: Metadata = { title: "Order Detail — GetMed Admin" };
 
@@ -82,9 +83,12 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                 <p className="text-xs text-[#6b8280]">Order ID</p>
                 <h1 className="text-[1.3rem] font-extrabold text-[#0d1f1c] break-all">{order.id}</h1>
               </div>
-              <span className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-bold ${badgeClasses(order.status)}`}>
-                {formatLabel(order.status)}
-              </span>
+              <div className="flex items-center gap-2 shrink-0">
+                <RefreshButton />
+                <span className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-bold ${badgeClasses(order.status)}`}>
+                  {formatLabel(order.status)}
+                </span>
+              </div>
             </div>
           </div>
 
