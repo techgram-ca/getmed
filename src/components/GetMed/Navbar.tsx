@@ -31,7 +31,7 @@ export default function Navbar() {
             <li key={label}>
               <Link
                 href={href}
-                className="text-sm font-medium text-[#6b8280] hover:text-[#0d1f1c] transition-colors no-underline"
+                className="text-sm font-medium text-[#2a9d8f] hover:text-[#0d1f1c] transition-colors no-underline"
               >
                 {label}
               </Link>
@@ -55,7 +55,7 @@ export default function Navbar() {
               key={label}
               href={href}
               onClick={() => setOpen(false)}
-              className="text-sm font-medium text-[#6b8280] no-underline"
+              className="text-sm font-medium text-[#2a9d8f] no-underline"
             >
               {label}
             </Link>
