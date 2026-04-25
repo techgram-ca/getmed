@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, Search, X } from "lucide-react";
 import Sidebar from "@/components/Pharmacy/dashboard/Sidebar";
 import OrderStatusChanger from "@/components/Pharmacy/dashboard/OrderStatusChanger";
 import { createClient } from "@/lib/supabase/server";
@@ -52,8 +52,10 @@ function badgeClasses(status: string) {
   return "bg-gray-100 text-gray-700 border-gray-200";
 }
 
-function buildOrdersHref(filter: StatusFilter, page: number) {
-  return `/pharmacy/dashboard/orders?status=${filter}&page=${page}`;
+function buildOrdersHref(filter: StatusFilter, page: number, q?: string) {
+  const params = new URLSearchParams({ status: filter, page: String(page) });
+  if (q) params.set("q", q);
+  return `/pharmacy/dashboard/orders?${params.toString()}`;
 }
 
 export default async function PharmacyOrdersPage({
@@ -64,6 +66,7 @@ export default async function PharmacyOrdersPage({
   const params = await searchParams;
   const statusFilter = getFilterValue(params.status);
   const currentPage  = getPageValue(params.page);
+  const searchQuery  = (Array.isArray(params.q) ? params.q[0] : params.q)?.trim() ?? "";
   const supabase     = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -104,6 +107,11 @@ export default async function PharmacyOrdersPage({
 
   if (statusFilter !== "all") {
     ordersQuery = ordersQuery.eq("status", statusFilter);
+  }
+  if (searchQuery) {
+    ordersQuery = ordersQuery.or(
+      `patient_name.ilike.%${searchQuery}%,patient_phone.ilike.%${searchQuery}%,patient_email.ilike.%${searchQuery}%`
+    );
   }
 
   const from = (currentPage - 1) * PAGE_SIZE;
@@ -162,6 +170,28 @@ export default async function PharmacyOrdersPage({
             ))}
           </section>
 
+          {/* Search bar */}
+          <form method="GET" className="mb-4 flex items-center gap-2">
+            <input type="hidden" name="status" value={statusFilter} />
+            <div className="relative max-w-sm w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b8280]" />
+              <input
+                name="q"
+                defaultValue={searchQuery}
+                placeholder="Search by name, phone or email…"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-[#e2efed] text-sm text-[#0d1f1c] bg-white focus:outline-none focus:border-[#2a9d8f] transition-colors"
+              />
+            </div>
+            {searchQuery && (
+              <Link
+                href={buildOrdersHref(statusFilter, 1)}
+                className="flex items-center gap-1 text-xs font-semibold text-[#6b8280] hover:text-red-500 no-underline transition-colors"
+              >
+                <X className="w-3.5 h-3.5" /> Clear
+              </Link>
+            )}
+          </form>
+
           <section className="bg-white rounded-2xl border border-[#e2efed] shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-[#e2efed] flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2">
@@ -170,7 +200,7 @@ export default async function PharmacyOrdersPage({
                   return (
                     <Link
                       key={status}
-                      href={buildOrdersHref(status, 1)}
+                      href={buildOrdersHref(status, 1, searchQuery || undefined)}
                       className={`no-underline px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
                         isActive
                           ? "bg-[#2a9d8f] border-[#2a9d8f] text-white"
@@ -241,7 +271,7 @@ export default async function PharmacyOrdersPage({
 
             <div className="px-5 py-4 border-t border-[#e2efed] flex items-center justify-between">
               <Link
-                href={buildOrdersHref(statusFilter, Math.max(1, currentPage - 1))}
+                href={buildOrdersHref(statusFilter, Math.max(1, currentPage - 1), searchQuery || undefined)}
                 aria-disabled={currentPage <= 1}
                 className={`no-underline text-xs font-semibold rounded-lg px-3 py-2 border ${
                   currentPage <= 1
@@ -253,7 +283,7 @@ export default async function PharmacyOrdersPage({
               </Link>
               <p className="text-xs text-[#6b8280]">Page {Math.min(currentPage, totalPages)} of {totalPages}</p>
               <Link
-                href={buildOrdersHref(statusFilter, Math.min(totalPages, currentPage + 1))}
+                href={buildOrdersHref(statusFilter, Math.min(totalPages, currentPage + 1), searchQuery || undefined)}
                 aria-disabled={currentPage >= totalPages}
                 className={`no-underline text-xs font-semibold rounded-lg px-3 py-2 border ${
                   currentPage >= totalPages
