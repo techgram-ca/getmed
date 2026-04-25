@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import AdminSidebar from "@/components/Admin/dashboard/AdminSidebar";
 import DriverReviewActions from "@/components/Admin/dashboard/DriverReviewActions";
+import RefreshButton from "@/components/shared/RefreshButton";
 
 export const metadata: Metadata = { title: "Driver Review — GetMed Admin" };
 
@@ -104,12 +105,15 @@ export default async function DriverDetailPage({
       <main className="flex-1 lg:pt-0 pt-14">
         <div className="p-6 lg:p-8 max-w-[1100px]">
           {/* Back */}
-          <Link
-            href="/admin/dashboard/drivers"
-            className="inline-flex items-center gap-1.5 text-sm text-[#6b8280] hover:text-[#0d1f1c] transition-colors no-underline mb-5"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to all drivers
-          </Link>
+          <div className="flex items-center justify-between gap-4 mb-5">
+            <Link
+              href="/admin/dashboard/drivers"
+              className="inline-flex items-center gap-1.5 text-sm text-[#6b8280] hover:text-[#0d1f1c] transition-colors no-underline"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to all drivers
+            </Link>
+            <RefreshButton />
+          </div>
 
           {/* Header */}
           <div className="flex items-start gap-4 mb-6">

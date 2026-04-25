@@ -5,6 +5,7 @@ import Sidebar from "@/components/Pharmacy/dashboard/Sidebar";
 import { createClient } from "@/lib/supabase/server";
 import OrderStatusChanger from "@/components/Pharmacy/dashboard/OrderStatusChanger";
 import DeliveryProofSection, { type DeliveryProof } from "@/components/shared/DeliveryProofSection";
+import RefreshButton from "@/components/shared/RefreshButton";
 
 export const metadata: Metadata = {
   title: "Order Details — GetMed Pharmacy Portal",
@@ -109,12 +110,15 @@ export default async function PharmacyOrderDetailPage({
               <p className="text-xs text-[#6b8280]">Order ID</p>
               <h1 className="text-[1.4rem] font-extrabold text-[#0d1f1c] break-all">{order.id}</h1>
             </div>
-            <Link
-              href="/pharmacy/dashboard/orders"
-              className="no-underline text-xs font-semibold text-[#2a9d8f] border border-[#cfe3df] rounded-lg px-3 py-2 hover:bg-[#e8f6f4]"
-            >
-              Back to orders
-            </Link>
+            <div className="flex items-center gap-2 shrink-0">
+              <RefreshButton />
+              <Link
+                href="/pharmacy/dashboard/orders"
+                className="no-underline text-xs font-semibold text-[#2a9d8f] border border-[#cfe3df] rounded-lg px-3 py-2 hover:bg-[#e8f6f4]"
+              >
+                Back to orders
+              </Link>
+            </div>
           </div>
 
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">

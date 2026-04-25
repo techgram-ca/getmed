@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { Clock, Package, CheckCircle, XCircle, Truck } from "lucide-react";
+import RefreshButton from "@/components/shared/RefreshButton";
 
 export interface HistoryOrder {
   id: string;
@@ -82,6 +83,12 @@ export default function DriverHistory({ orders }: Props) {
   return (
     <div className="min-h-screen bg-[#f0faf8] pb-24">
       <div className="max-w-lg mx-auto px-4 py-5">
+        {/* Page header */}
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-base font-extrabold text-[#0d1f1c]">Delivery History</p>
+          <RefreshButton />
+        </div>
+
         {/* Range tabs */}
         <div className="flex gap-2 mb-4">
           {(["week", "month", "all"] as Range[]).map((r) => (

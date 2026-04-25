@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { redirect } from "next/navigation";
 import { CheckCircle2, LogOut, User } from "lucide-react";
 import { updateDriverProfileAction, changeDriverPasswordAction } from "@/app/driver/dashboard/account/actions";
+import RefreshButton from "@/components/shared/RefreshButton";
 
 interface Driver {
   full_name: string;
@@ -71,6 +72,12 @@ export default function DriverAccountForms({ driver, provinces, vehicleTypes }: 
   return (
     <div className="min-h-screen bg-[#f0faf8] pb-24">
       <div className="max-w-lg mx-auto px-4 py-6 space-y-5">
+        {/* Page header */}
+        <div className="flex items-center justify-between">
+          <p className="text-base font-extrabold text-[#0d1f1c]">My Account</p>
+          <RefreshButton />
+        </div>
+
         {/* Avatar + email */}
         <div className="bg-white rounded-2xl border border-[#e2efed] shadow-sm p-5 flex items-center gap-4">
           {driver.photo_url ? (

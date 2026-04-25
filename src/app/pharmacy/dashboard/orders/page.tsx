@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import Sidebar from "@/components/Pharmacy/dashboard/Sidebar";
 import OrderStatusChanger from "@/components/Pharmacy/dashboard/OrderStatusChanger";
 import { createClient } from "@/lib/supabase/server";
+import RefreshButton from "@/components/shared/RefreshButton";
 
 export const metadata: Metadata = {
   title: "Orders — GetMed Pharmacy Portal",
@@ -132,13 +133,16 @@ export default async function PharmacyOrdersPage({
               <h1 className="text-[1.5rem] font-extrabold text-[#0d1f1c] tracking-tight">Orders</h1>
               <p className="text-sm text-[#6b8280] mt-1">Manage and track all pharmacy orders.</p>
             </div>
-            <Link
-              href="/pharmacy/dashboard/orders/new"
-              className="no-underline shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2a9d8f] text-white text-sm font-bold hover:bg-[#21867a] transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Add Order
-            </Link>
+            <div className="flex items-center gap-2 shrink-0">
+              <RefreshButton />
+              <Link
+                href="/pharmacy/dashboard/orders/new"
+                className="no-underline inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2a9d8f] text-white text-sm font-bold hover:bg-[#21867a] transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Add Order
+              </Link>
+            </div>
           </div>
 
           <section className="grid grid-cols-3 lg:grid-cols-6 gap-3 mb-6">

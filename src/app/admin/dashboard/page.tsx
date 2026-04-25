@@ -5,6 +5,7 @@ import { Building2, CheckCircle2, Clock, Package, ShoppingBag, Truck, XCircle } 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import AdminSidebar from "@/components/Admin/dashboard/AdminSidebar";
+import RefreshButton from "@/components/shared/RefreshButton";
 
 export const metadata: Metadata = { title: "Admin Dashboard — GetMed" };
 
@@ -78,9 +79,12 @@ export default async function AdminDashboardPage() {
       <AdminSidebar />
       <main className="flex-1 lg:pt-0 pt-14">
         <div className="p-6 lg:p-8 max-w-[1200px]">
-          <div className="mb-8">
-            <h1 className="text-[1.5rem] font-extrabold text-[#0d1f1c] tracking-tight">Admin Overview</h1>
-            <p className="text-sm text-[#6b8280] mt-1">Platform snapshot across all pharmacies and orders.</p>
+          <div className="mb-8 flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-[1.5rem] font-extrabold text-[#0d1f1c] tracking-tight">Admin Overview</h1>
+              <p className="text-sm text-[#6b8280] mt-1">Platform snapshot across all pharmacies and orders.</p>
+            </div>
+            <RefreshButton />
           </div>
 
           {/* Pharmacy stats */}

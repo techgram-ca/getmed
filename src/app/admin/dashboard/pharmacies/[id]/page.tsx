@@ -17,6 +17,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import AdminSidebar from "@/components/Admin/dashboard/AdminSidebar";
 import ReviewActions from "@/components/Admin/dashboard/ReviewActions";
+import RefreshButton from "@/components/shared/RefreshButton";
 
 export const metadata: Metadata = { title: "Pharmacy Review — GetMed Admin" };
 
@@ -92,13 +93,16 @@ export default async function PharmacyDetailPage({
         <div className="p-6 lg:p-8 max-w-[1100px]">
           {/* Back + header */}
           <div className="mb-6">
-            <Link
-              href="/admin/dashboard"
-              className="inline-flex items-center gap-1.5 text-sm text-[#6b8280] hover:text-[#0d1f1c] transition-colors no-underline mb-4"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to all pharmacies
-            </Link>
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <Link
+                href="/admin/dashboard"
+                className="inline-flex items-center gap-1.5 text-sm text-[#6b8280] hover:text-[#0d1f1c] transition-colors no-underline"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to all pharmacies
+              </Link>
+              <RefreshButton />
+            </div>
 
             <div className="flex items-start gap-4">
               {/* Logo */}
