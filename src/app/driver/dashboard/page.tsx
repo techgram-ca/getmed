@@ -4,6 +4,7 @@ import { HeartPulse, LogOut, MapPin, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import AssignedOrdersList, { type AssignedOrder } from "@/components/Driver/dashboard/AssignedOrdersList";
+import RefreshButton from "@/components/shared/RefreshButton";
 
 async function signOutAction() {
   "use server";
@@ -84,14 +85,17 @@ export default async function DriverDashboardPage() {
               <span className="text-[#6b8280] font-medium ml-1.5">Driver</span>
             </span>
           </Link>
-          <form action={signOutAction}>
-            <button
-              type="submit"
-              className="flex items-center gap-1.5 text-xs text-[#6b8280] hover:text-red-500 transition-colors cursor-pointer bg-transparent border-none p-2"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
-          </form>
+          <div className="flex items-center gap-2">
+            <RefreshButton />
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="flex items-center gap-1.5 text-xs text-[#6b8280] hover:text-red-500 transition-colors cursor-pointer bg-transparent border-none p-2"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </form>
+          </div>
         </div>
       </header>
 
