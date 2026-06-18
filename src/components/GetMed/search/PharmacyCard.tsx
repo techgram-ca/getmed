@@ -49,7 +49,7 @@ function buildHref(ph: SearchPharmacy, searchLat?: number, searchLng?: number, s
   if (searchLat != null) p.set("lat", searchLat.toString());
   if (searchLng != null) p.set("lng", searchLng.toString());
   const qs = p.toString();
-  return `/pharmacy/${slug}${qs ? `?${qs}` : ""}`;
+  return `/order/${slug}${qs ? `?${qs}` : ""}`;
 }
 
 export default function PharmacyCard({ pharmacy: ph, index, isActive, onMouseEnter, onMouseLeave, searchLat, searchLng, searchAddress }: Props) {
