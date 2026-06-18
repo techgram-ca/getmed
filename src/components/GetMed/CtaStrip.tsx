@@ -9,12 +9,6 @@ export default function CtaStrip() {
         community-owned pharmacy. Choose local — and help your neighbourhood
         grow together.
       </p>
-      <a
-        href="/pharmacy/get-started"
-        className="mt-7 inline-block bg-white text-[#2a9d8f] font-bold text-[0.9rem] px-9 py-3.5 rounded-full transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.15)]"
-      >
-        Partner With Us →
-      </a>
     </section>
   );
 }
