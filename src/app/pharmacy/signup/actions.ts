@@ -73,6 +73,8 @@ export async function pharmacySignupAction(
   const heroImageFile   = fd.get("heroImageFile")   as File | null;
   const landingJson     = fd.get("landing")         as string | null;
   const landing         = landingJson ? JSON.parse(landingJson) : {};
+  const priceListJson   = fd.get("priceList")       as string | null;
+  const priceList       = priceListJson ? JSON.parse(priceListJson) : [];
 
   // ── 1. Create auth user ───────────────────────────────────────
   const { data: authData, error: authError } =
@@ -192,6 +194,7 @@ export async function pharmacySignupAction(
       about_heading:     landing.aboutHeading     || null,
       about_description: landing.aboutDescription || null,
       landing_stats:     landing.stats?.length ? landing.stats : null,
+      price_list:        Array.isArray(priceList) ? priceList : [],
     })
     .select("id")
     .single();

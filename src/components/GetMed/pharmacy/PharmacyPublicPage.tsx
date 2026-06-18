@@ -3,17 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  ArrowLeftRight,
   Award,
+  CheckCircle2,
   Clock,
   FileText,
   HeartPulse,
   MapPin,
   Menu,
   Phone,
-  Quote,
   ShoppingBag,
   Stethoscope,
+  Tag,
   Truck,
   Users,
   X,
@@ -23,6 +23,12 @@ import { Button } from "@/components/ui/button";
 interface StatCard {
   value: string;
   label: string;
+}
+
+interface PriceItem {
+  name: string;
+  price: string;
+  description?: string;
 }
 
 interface Pharmacy {
@@ -43,6 +49,7 @@ interface Pharmacy {
   about_heading:     string | null;
   about_description: string | null;
   landing_stats:     StatCard[] | null;
+  price_list:        PriceItem[] | null;
 }
 
 interface Props {
@@ -52,8 +59,8 @@ interface Props {
 }
 
 // Fallback content used when the pharmacy hasn't customised a field
+const FALLBACK_HERO_IMAGE  = "/images/pharmacy.png";
 const FALLBACK_SUBTITLE    = "Personalized care for you and your family, right in your neighbourhood.";
-const FALLBACK_QUOTE       = "Your health, our priority — trusted care for every family.";
 const FALLBACK_DESCRIPTION = "We are a trusted community pharmacy committed to providing personalized, compassionate care to every patient who walks through our doors. Our team is dedicated to your health and wellbeing — from filling prescriptions quickly and accurately, to offering expert consultations and advice.";
 
 const FALLBACK_STATS: [StatCard, StatCard, StatCard] = [
@@ -65,9 +72,15 @@ const FALLBACK_STATS: [StatCard, StatCard, StatCard] = [
 // Icons mapped to stat position (1→Clock, 2→Users, 3→Award)
 const STAT_ICONS = [Clock, Users, Award];
 
+// Prefix "$" only when the price reads as a plain number (e.g. "25" → "$25").
+// Leaves free-form values like "Free" or "From $20" untouched.
+function formatPrice(price: string): string {
+  const trimmed = price.trim();
+  return /^\d+(\.\d{1,2})?$/.test(trimmed) ? `$${trimmed}` : trimmed;
+}
+
 export default function PharmacyPublicPage({ pharmacy, slug, consultationFee }: Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const consultLabel = (!consultationFee || consultationFee === 0) ? "Free Consultation" : "Consult Now";
 
   const services = [
     pharmacy.service_online_orders && { label: "Online Orders",           icon: ShoppingBag, color: "text-blue-600",   bg: "bg-blue-50"   },
@@ -76,8 +89,7 @@ export default function PharmacyPublicPage({ pharmacy, slug, consultationFee }: 
   ].filter(Boolean) as Array<{ label: string; icon: React.ElementType; color: string; bg: string }>;
 
   // Resolve dynamic content with fallbacks
-  const heroImage    = pharmacy.hero_image_url  || "/images/hero.png";
-  const heroPharmacyName  = pharmacy.display_name;
+  const heroImage    = pharmacy.hero_image_url || FALLBACK_HERO_IMAGE;
   const heroTitle    = pharmacy.hero_title      || pharmacy.display_name;
   const heroSubtitle = pharmacy.hero_subtitle   || FALLBACK_SUBTITLE;
   const aboutHeading = pharmacy.about_heading   || `Caring for ${pharmacy.city} since day one`;
@@ -88,6 +100,8 @@ export default function PharmacyPublicPage({ pharmacy, slug, consultationFee }: 
   const stats: [StatCard, StatCard, StatCard] = hasStats
     ? [rawStats[0] ?? FALLBACK_STATS[0], rawStats[1] ?? FALLBACK_STATS[1], rawStats[2] ?? FALLBACK_STATS[2]]
     : FALLBACK_STATS;
+
+  const priceItems = (pharmacy.price_list ?? []).filter((p) => p?.name && p?.price);
 
   return (
     <div className="min-h-screen bg-[#f8fffe]">
@@ -124,21 +138,21 @@ export default function PharmacyPublicPage({ pharmacy, slug, consultationFee }: 
             <span className="text-sm font-extrabold text-[#0d1f1c] truncate">{pharmacy.display_name}</span>
           </div>
 
-          {/* Desktop action links */}
+          {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-5 shrink-0">
-            <a
-              href="#quick-actions"
+            <Link
+              href={`/order/${slug}#prescription`}
               className="text-sm font-semibold text-[#2a9d8f] hover:text-[#21867a] transition-colors no-underline"
             >
               Order Now
-            </a>
-            {pharmacy.service_consultation && (
-              <Link
-                href={`/consult/${slug}`}
+            </Link>
+            {priceItems.length > 0 && (
+              <a
+                href="#pricing"
                 className="text-sm font-semibold text-[#2a9d8f] hover:text-[#21867a] transition-colors no-underline"
               >
-                {consultLabel}
-              </Link>
+                Pricing
+              </a>
             )}
             <a
               href={`tel:${pharmacy.phone}`}
@@ -163,21 +177,21 @@ export default function PharmacyPublicPage({ pharmacy, slug, consultationFee }: 
         {/* Mobile dropdown */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-[#e2efed] bg-white px-6 py-4 flex flex-col gap-4">
-            <a
-              href="#quick-actions"
+            <Link
+              href={`/order/${slug}#prescription`}
               onClick={() => setMobileMenuOpen(false)}
               className="text-sm font-semibold text-[#2a9d8f] no-underline"
             >
               Order Now
-            </a>
-            {pharmacy.service_consultation && (
-              <Link
-                href={`/consult/${slug}`}
+            </Link>
+            {priceItems.length > 0 && (
+              <a
+                href="#pricing"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-sm font-semibold text-[#2a9d8f] no-underline"
               >
-                {consultLabel}
-              </Link>
+                Pricing
+              </a>
             )}
             <a
               href={`tel:${pharmacy.phone}`}
@@ -191,32 +205,79 @@ export default function PharmacyPublicPage({ pharmacy, slug, consultationFee }: 
         )}
       </div>
 
-      {/* ── 3. Hero Section ─────────────────────────────────────────── */}
-      <section className="relative min-h-[480px] md:min-h-[580px] flex items-end">
-        <div className="absolute inset-0">
-          <img
-            src={heroImage}
-            alt=""
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0d1f1c]/88 via-[#0d1f1c]/45 to-transparent" />
-        </div>
+      {/* ── 3. Hero Section — two-column layout ─────────────────────── */}
+      <section className="bg-gradient-to-b from-[#f0fbf9] to-[#f8fffe] border-b border-[#e2efed]">
+        <div className="max-w-[1200px] mx-auto px-6 py-14 lg:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
-        <div className="relative z-10 w-full max-w-[1200px] mx-auto px-6 pb-16 pt-32">
-          <p className="text-[#a8e6df] text-xs font-bold uppercase tracking-widest mb-3">
-            Your trusted pharmacy
-          </p>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-4">
-            {heroPharmacyName}
-          </h1>
-          <p className="text-white/80 text-lg md:text-xl font-medium mb-8 max-w-xl">
-            {heroTitle}
-          </p>
+            {/* Left column — copy + CTAs */}
+            <div>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#e0f5f2] text-[#2a9d8f] text-xs font-semibold mb-5">
+                <span className="w-2 h-2 rounded-full bg-[#2a9d8f] pulse-dot" />
+                Your trusted neighbourhood pharmacy
+              </div>
 
-          <blockquote className="flex items-start gap-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 max-w-lg">
-            <Quote className="w-5 h-5 text-[#2a9d8f] shrink-0 mt-0.5" />
-            <p className="text-white/90 text-sm italic leading-relaxed">{heroSubtitle}</p>
-          </blockquote>
+              <h1 className="text-[clamp(2.2rem,5vw,3.4rem)] font-extrabold leading-[1.12] tracking-tight text-[#0d1f1c]">
+                {heroTitle}
+              </h1>
+
+              <p className="mt-4 text-[1.05rem] text-[#6b8280] max-w-[520px] leading-[1.7]">
+                {heroSubtitle}
+              </p>
+
+              {/* Two primary CTAs */}
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Button asChild size="lg" className="flex items-center gap-2">
+                  <Link href={`/order/${slug}#prescription`}>
+                    <FileText className="w-4 h-4" />
+                    Order Prescription
+                  </Link>
+                </Button>
+                {pharmacy.service_consultation && (
+                  <Button
+                    asChild
+                    size="lg"
+                    variant="white"
+                    className="flex items-center gap-2 border border-[#e2efed]"
+                  >
+                    <Link href={`/consult/${slug}`}>
+                      <Stethoscope className="w-4 h-4" />
+                      Book Consultation
+                    </Link>
+                  </Button>
+                )}
+              </div>
+
+              {/* Quick info row */}
+              <div className="mt-8 flex flex-col sm:flex-row gap-4">
+                <div className="flex items-start gap-2.5">
+                  <MapPin className="w-4 h-4 text-[#2a9d8f] shrink-0 mt-0.5" />
+                  <p className="text-sm text-[#6b8280] leading-snug">
+                    {pharmacy.full_address}
+                    <br />
+                    {pharmacy.city}, {pharmacy.province}
+                  </p>
+                </div>
+                <a
+                  href={`tel:${pharmacy.phone}`}
+                  className="flex items-center gap-2.5 text-sm text-[#6b8280] hover:text-[#2a9d8f] transition-colors no-underline"
+                >
+                  <Phone className="w-4 h-4 text-[#2a9d8f] shrink-0" />
+                  {pharmacy.phone}
+                </a>
+              </div>
+            </div>
+
+            {/* Right column — hero image with fallback */}
+            <div className="relative">
+              <div className="absolute inset-[-12px] bg-[#e0f5f2] rounded-[28px] rotate-3" />
+              <img
+                src={heroImage}
+                alt={pharmacy.display_name}
+                className="relative rounded-2xl w-full h-[300px] md:h-[400px] object-cover shadow-[0_32px_80px_rgba(42,157,143,0.15)]"
+              />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -225,7 +286,7 @@ export default function PharmacyPublicPage({ pharmacy, slug, consultationFee }: 
         <div className="max-w-[1200px] mx-auto px-6 py-16">
           <div className="grid lg:grid-cols-2 gap-12 items-start">
 
-            {/* Left: About + Services + Address */}
+            {/* Left: About + Services */}
             <div className="space-y-8">
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-[#2a9d8f] mb-3">About Us</p>
@@ -249,15 +310,6 @@ export default function PharmacyPublicPage({ pharmacy, slug, consultationFee }: 
                   </div>
                 </div>
               )}
-
-              <div className="flex items-start gap-3 p-4 bg-[#f8fffe] rounded-2xl border border-[#e2efed]">
-                <MapPin className="w-5 h-5 text-[#2a9d8f] shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-bold text-[#0d1f1c]">{pharmacy.display_name}</p>
-                  <p className="text-sm text-[#6b8280] mt-0.5">{pharmacy.full_address}</p>
-                  <p className="text-sm text-[#6b8280]">{pharmacy.city}, {pharmacy.province}</p>
-                </div>
-              </div>
             </div>
 
             {/* Right: Trust stats */}
@@ -284,63 +336,78 @@ export default function PharmacyPublicPage({ pharmacy, slug, consultationFee }: 
         </div>
       </section>
 
-      {/* ── 5. Action Cards ─────────────────────────────────────────── */}
-      <section id="quick-actions" className="py-16 scroll-mt-32">
-        <div className="max-w-[1200px] mx-auto px-6">
-          <div className="text-center mb-10">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#2a9d8f] mb-3">Quick Actions</p>
-            <h2 className="text-3xl font-extrabold text-[#0d1f1c]">How can we help you today?</h2>
+      {/* ── 5. Service Price List Widget ────────────────────────────── */}
+      {priceItems.length > 0 && (
+        <section id="pricing" className="py-16 scroll-mt-32">
+          <div className="max-w-[900px] mx-auto px-6">
+            <div className="text-center mb-10">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#2a9d8f] mb-3">Pricing</p>
+              <h2 className="text-3xl font-extrabold text-[#0d1f1c]">Our Services &amp; Prices</h2>
+              <p className="mt-3 text-[#6b8280]">Transparent pricing for the services we offer.</p>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-[#e2efed] shadow-sm overflow-hidden divide-y divide-[#e2efed]">
+              {priceItems.map((item, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between gap-4 px-6 py-5 hover:bg-[#f8fffe] transition-colors"
+                >
+                  <div className="flex items-start gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-[#e0f5f2] flex items-center justify-center shrink-0">
+                      <Tag className="w-5 h-5 text-[#2a9d8f]" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-base font-bold text-[#0d1f1c]">{item.name}</p>
+                      {item.description && (
+                        <p className="text-sm text-[#6b8280] mt-0.5 leading-snug">{item.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-lg font-extrabold text-[#2a9d8f] whitespace-nowrap shrink-0">
+                    {formatPrice(item.price)}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Closing CTA under the price list */}
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Button asChild size="lg" className="flex items-center gap-2">
+                <Link href={`/order/${slug}#prescription`}>
+                  <FileText className="w-4 h-4" />
+                  Order Prescription
+                </Link>
+              </Button>
+              {pharmacy.service_consultation && (
+                <Button asChild size="lg" variant="white" className="flex items-center gap-2 border border-[#e2efed]">
+                  <Link href={`/consult/${slug}`}>
+                    <Stethoscope className="w-4 h-4" />
+                    Book Consultation
+                  </Link>
+                </Button>
+              )}
+            </div>
           </div>
+        </section>
+      )}
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-
-            {/* Card 1 — Transfer Prescription */}
-            <div className="bg-white rounded-2xl border border-[#e2efed] shadow-sm p-6 flex flex-col gap-5 hover:shadow-md hover:border-[#2a9d8f]/30 transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-[#e0f5f2] flex items-center justify-center">
-                <ArrowLeftRight className="w-6 h-6 text-[#2a9d8f]" />
+      {/* ── 6. Trust strip ─────────────────────────────────────────── */}
+      <section className="bg-white border-t border-[#e2efed]">
+        <div className="max-w-[1200px] mx-auto px-6 py-10">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">
+            {[
+              { title: "Licensed & verified", desc: "An approved pharmacy on the GetMed network." },
+              { title: "Fast & convenient", desc: "Order online for pickup or home delivery." },
+              { title: "Caring local team", desc: "Real pharmacists who know your community." },
+            ].map(({ title, desc }) => (
+              <div key={title} className="flex items-start gap-3 justify-center sm:justify-start">
+                <CheckCircle2 className="w-5 h-5 text-[#2a9d8f] shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-bold text-[#0d1f1c]">{title}</p>
+                  <p className="text-sm text-[#6b8280] mt-0.5">{desc}</p>
+                </div>
               </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-extrabold text-[#0d1f1c] mb-2">Transfer Prescription</h3>
-                <p className="text-sm text-[#6b8280] leading-relaxed">
-                  Move your existing prescriptions from another pharmacy quickly, easily, and at no cost.
-                </p>
-              </div>
-              <Button asChild className="w-full" size="default">
-                <Link href={`/order/${slug}#transfer`}>Transfer Prescription</Link>
-              </Button>
-            </div>
-
-            {/* Card 2 — Order Prescription */}
-            <div className="bg-white rounded-2xl border border-[#e2efed] shadow-sm p-6 flex flex-col gap-5 hover:shadow-md hover:border-[#2a9d8f]/30 transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-[#e0f5f2] flex items-center justify-center">
-                <FileText className="w-6 h-6 text-[#2a9d8f]" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-extrabold text-[#0d1f1c] mb-2">Order Prescription</h3>
-                <p className="text-sm text-[#6b8280] leading-relaxed">
-                  Refill your medications online for convenient pickup or home delivery right to your door.
-                </p>
-              </div>
-              <Button asChild className="w-full" size="default">
-                <Link href={`/order/${slug}#prescription`}>Order Prescription</Link>
-              </Button>
-            </div>
-
-            {/* Card 3 — Consult a Pharmacist */}
-            <div className="bg-white rounded-2xl border border-[#e2efed] shadow-sm p-6 flex flex-col gap-5 hover:shadow-md hover:border-[#2a9d8f]/30 transition-all sm:col-span-2 lg:col-span-1">
-              <div className="w-12 h-12 rounded-2xl bg-[#e0f5f2] flex items-center justify-center">
-                <Stethoscope className="w-6 h-6 text-[#2a9d8f]" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-extrabold text-[#0d1f1c] mb-2">Consult a Pharmacist</h3>
-                <p className="text-sm text-[#6b8280] leading-relaxed">
-                  Get professional pharmacist advice from the comfort of your home via video or phone.
-                </p>
-              </div>
-              <Button asChild className="w-full" size="default">
-                <Link href={`/consult/${slug}`}>Book Consultation</Link>
-              </Button>
-            </div>
+            ))}
           </div>
         </div>
       </section>

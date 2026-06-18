@@ -194,6 +194,7 @@ Primary table for pharmacy accounts.
 | `about_heading` | `text` | nullable |
 | `about_description` | `text` | nullable |
 | `landing_stats` | `jsonb` | Default `[]`. Shape: `[{ "value": "15+", "label": "Years serving" }]` |
+| `price_list` | `jsonb` | Default `[]`. Dynamic service price list shown on the public landing page. Shape: `[{ "name": "Flu Shot", "price": "25", "description": "..." }]`. Captured during signup. |
 | `status` | `pharmacy_status` | Default `pending` |
 | `rejection_reason` | `text` | nullable |
 | `reviewed_at` | `timestamptz` | nullable |
@@ -478,7 +479,7 @@ Roles are stored in Supabase Auth's `app_metadata.role` field. This is set serve
 - `loginAction(_prev, fd)` — Signs in pharmacy user, checks `status === approved`, redirects to `/pharmacy/dashboard`.
 
 **`src/app/pharmacy/signup/actions.ts`**
-- `pharmacySignupAction(fd)` — Creates auth user (role=pharmacy), uploads logo + hero image + license, inserts `pharmacies` row, optionally inserts `pharmacist_profiles` row, sends SMS to pharmacy contact + admin.
+- `pharmacySignupAction(fd)` — Creates auth user (role=pharmacy), uploads logo + hero image + license, inserts `pharmacies` row (including the `price_list` JSON captured from the signup form), optionally inserts `pharmacist_profiles` row, sends SMS to pharmacy contact + admin.
 
 **`src/app/pharmacy/dashboard/actions.ts`**
 - `logoutAction()` — Signs out and redirects to `/pharmacy/login`.
@@ -618,8 +619,9 @@ Roles are stored in Supabase Auth's `app_metadata.role` field. This is set serve
 
 **`PharmacyPublicPage.tsx`**
 - Full public landing page for a pharmacy, rendered at `/pharmacy/[slug]`.
-- Props: `pharmacy` object (all public fields), `slug`, `consultationFee`.
-- Renders: hero, about, services, opening hours. Links out to `/order/[slug]#transfer`, `/order/[slug]#prescription`, and `/consult/[slug]` for the actual order/consult actions.
+- Props: `pharmacy` object (all public fields incl. `price_list`), `slug`, `consultationFee`.
+- Layout: two-column hero (copy + CTAs left, image right) styled like the home page hero; falls back to `/images/pharmacy.png` when `hero_image_url` is null. Followed by an about/services/stats section, a dynamic **service price list widget** (rendered only when `price_list` has entries; numeric prices are auto-prefixed with `$`), a trust strip, and footer.
+- Exactly **two CTAs**: "Order Prescription" → `/order/[slug]#prescription` and "Book Consultation" → `/consult/[slug]` (the consult CTA only shows when `service_consultation` is true). Both CTAs appear in the hero and again beneath the price list.
 
 **`PharmacyLanding.tsx`**
 - Take-order page for a pharmacy, rendered at `/order/[slug]`.
@@ -666,14 +668,20 @@ Roles are stored in Supabase Auth's `app_metadata.role` field. This is set serve
 - Uses `useActionState` with `loginAction`.
 
 **`SignupForm.tsx`**
-- Multi-step signup form with five sections:
+- Multi-step signup form with these sections (in render order):
   1. `BasicInfo` — email, password, contact name, phone
   2. `PharmacyDetails` — legal name, display name, address, license number, opening hours, payment methods
-  3. `Services` — online orders, delivery, consultation toggles
-  4. `PharmacistDetails` — shown only if consultation enabled; full pharmacist profile
-  5. `LandingPage` — hero title/subtitle, about heading/description, stats, hero image upload
+  3. `LandingPage` — hero title/subtitle, about heading/description, stats, hero image upload
+  4. `PriceList` — dynamic list of services with name + price + optional description (add/remove rows); persisted to `pharmacies.price_list`
+  5. `Services` — online orders, delivery, consultation toggles
+  6. `PharmacistDetails` — shown only if consultation enabled; full pharmacist profile
 - File uploads: `LogoUpload`, `FileUpload` (license), `FileUpload` (hero image), `FileUpload` (pharmacist photo).
-- Submits everything as `FormData` to `pharmacySignupAction`.
+- Submits everything as `FormData` to `pharmacySignupAction`. The price list is sent as a JSON `priceList` field with blank rows stripped.
+
+**`sections/PriceList.tsx`**
+- Dynamic service-pricing editor used in `SignupForm`.
+- Exports `PriceListValue` (`{ items: { name, price, description }[] }`) and `DEFAULT_PRICE_LIST`.
+- Props: `value`, `onChange`, `step`. Supports adding/removing an arbitrary number of service rows.
 
 **`OpeningHours.tsx`**
 - Day-by-day hours editor (Mon–Sun).
