@@ -695,3 +695,13 @@ values (
   'delivery-proofs', 'delivery-proofs', false, 20971520,
   array['image/jpeg','image/jpg','image/png','image/webp']
 ) on conflict (id) do nothing;
+
+-- ============================================================
+-- MIGRATION: Pharmacy service price list
+-- ============================================================
+
+-- Dynamic list of services and their prices, shown on the public
+-- pharmacy landing page and captured during signup.
+-- Shape: [{ "name": "Flu Shot", "price": "25", "description": "..." }, ...]
+alter table public.pharmacies
+  add column if not exists price_list jsonb not null default '[]'::jsonb;

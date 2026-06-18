@@ -22,6 +22,10 @@ import LandingPage, {
   DEFAULT_LANDING_PAGE,
   type LandingPageValue,
 } from "./sections/LandingPage";
+import PriceList, {
+  DEFAULT_PRICE_LIST,
+  type PriceListValue,
+} from "./sections/PriceList";
 
 interface FormState {
   basic: BasicInfoValue;
@@ -29,12 +33,14 @@ interface FormState {
   services: ServicesValue;
   pharmacist: PharmacistValue;
   landing: LandingPageValue;
+  priceList: PriceListValue;
 }
 
 const INITIAL: FormState = {
   basic: { contactName: "", email: "", phone: "", password: "" },
   pharmacy: DEFAULT_PHARMACY_DETAILS,
   landing: DEFAULT_LANDING_PAGE,
+  priceList: DEFAULT_PRICE_LIST,
   services: { onlineOrders: false, delivery: false, consultation: false },
   pharmacist: DEFAULT_PHARMACIST,
 };
@@ -86,6 +92,20 @@ export default function SignupForm() {
       if (form.landing.heroImageFile) {
         fd.append("heroImageFile", form.landing.heroImageFile);
       }
+
+      // ── Service price list (dynamic, blank rows dropped) ───────
+      fd.append(
+        "priceList",
+        JSON.stringify(
+          form.priceList.items
+            .map((it) => ({
+              name: it.name.trim(),
+              price: it.price.trim(),
+              description: it.description.trim(),
+            }))
+            .filter((it) => it.name && it.price)
+        )
+      );
 
       // ── Services ───────────────────────────────────────────────
       fd.append("services", JSON.stringify(form.services));
@@ -183,6 +203,7 @@ export default function SignupForm() {
               "Basic Info",
               "Pharmacy Details",
               "Landing Page",
+              "Price List",
               "Services",
               ...(form.services.consultation ? ["Pharmacist Profile"] : []),
             ].map((label, i) => (
@@ -220,15 +241,21 @@ export default function SignupForm() {
           onChange={(v) => setForm((prev) => ({ ...prev, landing: v }))}
         />
 
+        <PriceList
+          step={4}
+          value={form.priceList}
+          onChange={(v) => setForm((prev) => ({ ...prev, priceList: v }))}
+        />
+
         <Services
-        step={4}
+        step={5}
           value={form.services}
           onChange={(v) => setForm((prev) => ({ ...prev, services: v }))}
         />
 
         {form.services.consultation && (
           <PharmacistDetails
-          step={5}
+          step={6}
             value={form.pharmacist}
             onChange={(v) => setForm((prev) => ({ ...prev, pharmacist: v }))}
           />
