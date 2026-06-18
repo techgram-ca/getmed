@@ -306,7 +306,7 @@ export default function PharmacyPublicPage({ pharmacy, slug, consultationFee }: 
                 </p>
               </div>
               <Button asChild className="w-full" size="default">
-                <Link href={`/pharmacy/${slug}#transfer`}>Transfer Prescription</Link>
+                <Link href={`/order/${slug}#transfer`}>Transfer Prescription</Link>
               </Button>
             </div>
 
@@ -322,7 +322,7 @@ export default function PharmacyPublicPage({ pharmacy, slug, consultationFee }: 
                 </p>
               </div>
               <Button asChild className="w-full" size="default">
-                <Link href={`/pharmacy/${slug}#prescription`}>Order Prescription</Link>
+                <Link href={`/order/${slug}#prescription`}>Order Prescription</Link>
               </Button>
             </div>
 

@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { CheckCircle2, Upload, X } from "lucide-react";
-import { submitOrderAction } from "@/app/(getmed)/[slug]/actions";
+import { submitOrderAction } from "@/app/order/[slug]/actions";
 import AddressAutocomplete from "@/components/GetMed/AddressAutocomplete";
 
 interface Props {

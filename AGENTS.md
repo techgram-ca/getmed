@@ -82,18 +82,19 @@ getmed/
     │   │   ├── layout.tsx      # Injects GoogleMapsScript for all public pages
     │   │   ├── page.tsx        # Home page
     │   │   ├── search/         # Pharmacy search results
-    │   │   ├── [slug]/         # Public pharmacy landing page
     │   │   ├── consult/        # Consultation landing + nearby pharmacists
     │   │   ├── about/
     │   │   ├── faq/
     │   │   ├── privacy/
     │   │   ├── terms/
     │   │   └── support/
+    │   ├── order/              # Public take-order pages
+    │   │   └── [slug]/         # Pharmacy take-order page (prescription/transfer/OTC forms + actions.ts)
     │   ├── pharmacy/           # Pharmacy portal
     │   │   ├── login/
     │   │   ├── signup/
     │   │   ├── get-started/
-    │   │   ├── [slug]/         # Public pharmacy profile (alternate route)
+    │   │   ├── [slug]/         # Public pharmacy landing page (hero, about, services)
     │   │   └── dashboard/      # Pharmacy dashboard (auth-protected)
     │   │       ├── page.tsx    # Overview / stats
     │   │       ├── actions.ts  # Logout
@@ -465,7 +466,7 @@ Roles are stored in Supabase Auth's `app_metadata.role` field. This is set serve
 
 #### Patient / Public
 
-**`src/app/(getmed)/[slug]/actions.ts`**
+**`src/app/order/[slug]/actions.ts`**
 - `submitOrderAction(fd: FormData)` — Creates an order for a pharmacy. Uploads prescription/insurance files to `prescription-uploads`. Sends SMS to patient + pharmacy. Called from `PrescriptionForm`, `TransferForm`, `OTCForm`.
 
 **`src/app/(getmed)/consult/actions.ts`**
@@ -603,7 +604,7 @@ Roles are stored in Supabase Auth's `app_metadata.role` field. This is set serve
 - Props: pharmacy object with `id`, `display_name`, `logo_url`, `full_address`, `city`, `province`, `opening_hours`, `service_*` flags, `url_slug`, `lat`, `lng`; plus `userLat`, `userLng` for distance calculation.
 - Computes and displays distance using Haversine.
 - Shows open/closed badge based on current day/time.
-- Links to `/[url_slug]`.
+- Links to `/order/[url_slug]` (the take-order page) so patients can act immediately from search results.
 
 **`PharmacyMap.tsx`**
 - Google Maps display of pharmacies in search results.
@@ -616,9 +617,14 @@ Roles are stored in Supabase Auth's `app_metadata.role` field. This is set serve
 - Manages selected pharmacy state; clicking list item or map marker highlights the card.
 
 **`PharmacyPublicPage.tsx`**
-- Full public landing page for a pharmacy.
-- Props: `pharmacy` object (all public fields), `pharmacist` profile (nullable).
-- Renders: hero, about, services, opening hours, `OrderTabs` for order submission.
+- Full public landing page for a pharmacy, rendered at `/pharmacy/[slug]`.
+- Props: `pharmacy` object (all public fields), `slug`, `consultationFee`.
+- Renders: hero, about, services, opening hours. Links out to `/order/[slug]#transfer`, `/order/[slug]#prescription`, and `/consult/[slug]` for the actual order/consult actions.
+
+**`PharmacyLanding.tsx`**
+- Take-order page for a pharmacy, rendered at `/order/[slug]`.
+- Props: `pharmacy` object, `pharmacist` profile (nullable), `defaultAddress`.
+- Renders: pharmacy header, opening hours, payment methods, and `OrderTabs` for prescription/transfer/OTC order submission.
 
 **`OrderTabs.tsx`**
 - Tab switcher between Prescription, Transfer, OTC forms.
@@ -948,7 +954,7 @@ Patients do **not** have accounts. All interactions are anonymous. Order submiss
 
 ### Order Submission Flow (Patient)
 
-1. Patient lands on a pharmacy's public page at `/(getmed)/[slug]`.
+1. Patient lands on a pharmacy's take-order page at `/order/[slug]` (reached via the pharmacy landing page at `/pharmacy/[slug]` or directly from a `/search` result card).
 2. Selects order type via `OrderTabs` (Prescription, Transfer, OTC).
 3. Fills the appropriate form (PrescriptionForm, TransferForm, OTCForm).
 4. Submits → `submitOrderAction(FormData)`:
