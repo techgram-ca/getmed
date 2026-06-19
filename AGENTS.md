@@ -602,8 +602,8 @@ Roles are stored in Supabase Auth's `app_metadata.role` field. This is set serve
 
 **`PharmacyCard.tsx`**
 - Displays a single pharmacy in search results.
-- Props: pharmacy object with `id`, `display_name`, `logo_url`, `full_address`, `city`, `province`, `opening_hours`, `service_*` flags, `url_slug`, `lat`, `lng`; plus `userLat`, `userLng` for distance calculation.
-- Computes and displays distance using Haversine.
+- Props: pharmacy object including a server-computed `distance_km` (real driving distance, see `src/lib/distance.ts`), plus `id`, `display_name`, `logo_url`, `full_address`, `city`, `province`, `opening_hours`, `service_*` flags, `url_slug`, `lat`, `lng`.
+- Displays the pre-computed `distance_km`; does not compute distance itself.
 - Shows open/closed badge based on current day/time.
 - Links to `/order/[url_slug]` (the take-order page) so patients can act immediately from search results.
 
@@ -840,6 +840,7 @@ There are no React Context providers. Each portal (pharmacy, driver, admin) is e
 - `src/lib/supabase/client.ts` — `createBrowserClient(url, anonKey)` for client components (e.g., real-time, if ever used).
 - `src/lib/supabase/server.ts` — `createServerClient(url, anonKey, cookieStore)` for Server Components and Actions. Reads/writes session cookies.
 - `src/lib/supabase/admin.ts` — `createClient(url, serviceRoleKey)` with `autoRefreshToken: false, persistSession: false`. Used in all admin actions and anywhere unauthenticated writes are needed (order submission, signup).
+- `src/lib/distance.ts` — `haversineKm()` (cheap straight-line estimate, used only as a pre-filter), `prefilterRadiusKm()` (widens the search radius 1.6× before the pre-filter, since driving distance ≥ straight-line distance), and `getDrivingDistancesKm(origin, destinations)` (real driving distance via the Google Distance Matrix API, batched 25 destinations/request using `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`; falls back to the straight-line distance per-destination on any API failure so the page never breaks). Used by `search/page.tsx` and `consult/nearby/page.tsx`.
 
 **Auth approach:** Email + password via `signInWithPassword`. Roles are in `app_metadata` (server-set, tamper-proof). No OAuth, no magic links, no email verification in the flow (signup uses `email_confirm: true` so the user is immediately confirmed server-side by the admin client).
 
@@ -1024,14 +1025,16 @@ Identical to pharmacy approval:
 4. Server component in `search/page.tsx`:
    - Reads `search_radius_km` from `app_settings`.
    - Fetches all `approved` pharmacies from Supabase with non-null `lat`/`lng`.
-   - Filters by Haversine distance ≤ radius.
-   - Passes filtered list to `SearchResults` component.
+   - Pre-filters candidates with cheap Haversine straight-line distance using a widened radius (`prefilterRadiusKm()`, 1.6×) since driving distance is always ≥ straight-line distance.
+   - Looks up real driving distance for the candidate set via `getDrivingDistancesKm()` (Google Distance Matrix API, batched 25 destinations/request, falls back to the straight-line value per-destination if the API call fails or the key is missing).
+   - Filters by actual driving distance ≤ radius and sorts ascending.
+   - Passes the filtered list (with real `distance_km`) to `SearchResults` component.
 5. `SearchResults` renders list + `PharmacyMap` side by side.
 
 ### Consultation Flow
 
 1. Patient visits `/consult` → sees ConsultLanding.
-2. Navigates to `/consult/nearby` → `NearbyPharmacists` lists pharmacies with `service_consultation = true` and a linked `pharmacist_profiles` row.
+2. Navigates to `/consult/nearby` → server component fetches pharmacies with `service_consultation = true` and a linked `pharmacist_profiles` row, applies the same Haversine pre-filter + Google Distance Matrix real-driving-distance lookup as the pharmacy search flow (see `src/lib/distance.ts`), then `NearbyPharmacists` lists the result.
 3. Patient clicks a pharmacist → `/consult/[slug]` → `ConsultBookingLanding`.
 4. Fills booking form → inserts into `consultations` table.
 5. Pharmacy sees consultation request in `/pharmacy/dashboard/consultations`.

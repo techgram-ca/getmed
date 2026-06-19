@@ -6,20 +6,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import NearbyPharmacists, {
   type NearbyPharmacy,
 } from "@/components/GetMed/consult/NearbyPharmacists";
+import { haversineKm, prefilterRadiusKm, getDrivingDistancesKm } from "@/lib/distance";
 
 export const metadata: Metadata = { title: "Find a Pharmacist — GetMed" };
-
-function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
-  const R    = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
 
 export default async function NearbyPage({
   searchParams,
@@ -58,7 +47,7 @@ export default async function NearbyPage({
     .not("lat", "is", null)
     .not("lng", "is", null);
 
-  const pharmacies: NearbyPharmacy[] = (rows ?? [])
+  const candidates = (rows ?? [])
     .map((ph) => {
       const profile = Array.isArray(ph.pharmacist_profiles)
         ? ph.pharmacist_profiles[0] ?? null
@@ -72,10 +61,21 @@ export default async function NearbyPage({
         city:          ph.city,
         province:      ph.province,
         phone:         ph.phone,
-        distance_km:   haversineKm(lat, lng, ph.lat!, ph.lng!),
+        lat:           ph.lat!,
+        lng:           ph.lng!,
+        straightLineKm: haversineKm(lat, lng, ph.lat!, ph.lng!),
         pharmacist:    profile,
       };
     })
+    .filter((ph) => ph.straightLineKm <= prefilterRadiusKm(radiusKm));
+
+  const drivingKm = await getDrivingDistancesKm(
+    { lat, lng },
+    candidates.map((ph) => ({ lat: ph.lat, lng: ph.lng, fallbackKm: ph.straightLineKm }))
+  );
+
+  const pharmacies: NearbyPharmacy[] = candidates
+    .map((ph, i) => ({ ...ph, distance_km: drivingKm[i] }))
     .filter((ph) => ph.distance_km <= radiusKm)
     .sort((a, b) => a.distance_km - b.distance_km);
 
