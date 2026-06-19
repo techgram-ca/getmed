@@ -1056,7 +1056,8 @@ All env vars must be set in `.env.local` (not committed) for local development, 
 | `NEXT_PUBLIC_SUPABASE_URL` | ✅ | Supabase project URL. Used by all three Supabase clients. Public — safe to expose. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase anonymous/public key. Used by browser and server clients. Public. |
 | `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Supabase service role key. Bypasses RLS. **Server-only.** Never expose to client. |
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | ✅ | Google Maps JavaScript API key. Needs Places + Maps APIs enabled. Public. |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | ✅ | Google Maps JavaScript API key. Needs Places + Maps APIs enabled. Public — typically HTTP-referrer restricted. |
+| `GOOGLE_MAPS_SERVER_API_KEY` | ⚠️ optional | Server-only Google Maps key used by `src/lib/distance.ts` for the Distance Matrix API (real driving distance). Needs the **Distance Matrix API** enabled and should be **IP/unrestricted**, not referrer-restricted (server requests have no referrer). If absent, the code falls back to `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, which — being referrer-restricted — usually fails server-side with `REQUEST_DENIED` and the search/consult pages then fall back to straight-line distance. |
 | `TWILIO_ACCOUNT_SID` | ⚠️ optional | Twilio account SID. Required to send SMS. |
 | `TWILIO_AUTH_TOKEN` | ⚠️ optional | Twilio auth token. Required to send SMS. |
 | `TWILIO_PHONE_NUMBER` | ⚠️ optional | Twilio sender phone number (E.164 format, e.g. `+15005550006`). |

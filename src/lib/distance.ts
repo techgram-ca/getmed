@@ -43,7 +43,13 @@ export async function getDrivingDistancesKm(
   origin: { lat: number; lng: number },
   destinations: { lat: number; lng: number; fallbackKm: number }[]
 ): Promise<number[]> {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  // Prefer a server-only, unrestricted key. The NEXT_PUBLIC_ key is
+  // exposed to the browser and is typically HTTP-referrer restricted,
+  // which makes server-side Distance Matrix calls fail with
+  // REQUEST_DENIED — causing a silent fallback to straight-line.
+  const apiKey =
+    process.env.GOOGLE_MAPS_SERVER_API_KEY ||
+    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   if (!apiKey || destinations.length === 0) {
     return destinations.map((d) => d.fallbackKm);
   }
@@ -63,6 +69,17 @@ export async function getDrivingDistancesKm(
     try {
       const res = await fetch(url);
       const data = await res.json();
+
+      // Surface API-level failures (REQUEST_DENIED, OVER_QUERY_LIMIT,
+      // etc.) — these are the usual reason the page silently falls
+      // back to straight-line distance.
+      if (data?.status !== "OK") {
+        console.error(
+          `[distance] Distance Matrix API status=${data?.status}` +
+            (data?.error_message ? ` — ${data.error_message}` : "")
+        );
+      }
+
       const elements = data?.rows?.[0]?.elements ?? [];
 
       batch.forEach((d, idx) => {
@@ -73,7 +90,8 @@ export async function getDrivingDistancesKm(
           results[i + idx] = d.fallbackKm;
         }
       });
-    } catch {
+    } catch (err) {
+      console.error("[distance] Distance Matrix request failed:", err);
       batch.forEach((d, idx) => {
         results[i + idx] = d.fallbackKm;
       });
